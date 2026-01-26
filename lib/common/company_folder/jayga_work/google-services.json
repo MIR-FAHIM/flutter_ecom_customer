@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "13092860798",
+    "project_id": "jayga-fa1ad",
+    "storage_bucket": "jayga-fa1ad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13092860798:android:75597df68f9c48062ef92f",
+        "android_client_info": {
+          "package_name": "brainwork.task.jayga"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVJ6dqWe1H1TXH236KGu9iEvZPlCTa7lc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13092860798:android:20e62399effee31c2ef92f",
+        "android_client_info": {
+          "package_name": "com.jayga.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVJ6dqWe1H1TXH236KGu9iEvZPlCTa7lc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

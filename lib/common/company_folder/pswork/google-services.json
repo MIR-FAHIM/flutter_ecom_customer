@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "1040584321669",
+    "project_id": "payplus-merchant",
+    "storage_bucket": "payplus-merchant.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040584321669:android:cd3ed916e9c19b71f617ec",
+        "android_client_info": {
+          "package_name": "brainwork.task.jayga"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMHCuRvZWm8x-WLt1vOkbR_gB0IVsADuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040584321669:android:95cbe1fc4da1daa4f617ec",
+        "android_client_info": {
+          "package_name": "com.payplus.merchant"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMHCuRvZWm8x-WLt1vOkbR_gB0IVsADuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040584321669:android:c4d00ef15d48df2ef617ec",
+        "android_client_info": {
+          "package_name": "com.paystation.bd"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMHCuRvZWm8x-WLt1vOkbR_gB0IVsADuI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
