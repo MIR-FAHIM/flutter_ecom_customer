@@ -5,16 +5,11 @@ import 'package:flutter_switch/flutter_switch.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:get_storage/get_storage.dart';
-
-import 'package:ecom_delivery_flutter/app/modules/home/controllers/home_controller.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:ecom_delivery_flutter/app/modules/settings/controllers/language_controller.dart';
-import 'package:ecom_delivery_flutter/app/routes/app_pages.dart';
-import 'package:ecom_delivery_flutter/app/services/auth_service.dart';
-import 'package:ecom_delivery_flutter/common/Color.dart';
-import 'package:ecom_delivery_flutter/service/shared_pref.dart';
+import 'package:ecom_user_flutter/app/modules/settings/controllers/language_controller.dart';
+import 'package:ecom_user_flutter/app/routes/app_pages.dart';
+import 'package:ecom_user_flutter/app/services/auth_service.dart';
+import 'package:ecom_user_flutter/common/Color.dart';
+import 'package:ecom_user_flutter/service/shared_pref.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'drawer_link_widget.dart';
 
@@ -52,11 +47,6 @@ class MainDrawerWidget extends StatelessWidget {
                 ),
               ],
             )),
-
-
-
-
-
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: ExpandablePanel(
@@ -78,9 +68,7 @@ class MainDrawerWidget extends StatelessWidget {
                       DrawerLinkWidget(
                         icon: 'assets/drawer/2.png',
                         text: "Hotline".tr,
-                        onTap: (e) {
-
-                        },
+                        onTap: (e) {},
                       ),
                       SizedBox(
                         height: 10,
@@ -131,7 +119,6 @@ class MainDrawerWidget extends StatelessWidget {
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: ExpandablePanel(
@@ -232,9 +219,7 @@ class MainDrawerWidget extends StatelessWidget {
                       DrawerLinkWidget(
                         icon: 'assets/drawer/6.png',
                         text: "Change Pin".tr,
-                        onTap: (e) {
-
-                        },
+                        onTap: (e) {},
                       ),
                       SizedBox(
                         height: 10,
@@ -242,10 +227,7 @@ class MainDrawerWidget extends StatelessWidget {
                       DrawerLinkWidget(
                         icon: 'assets/drawer/deactivate_account.png',
                         text: "Account Deactivate".tr,
-                        onTap: (e) {
-
-
-                        },
+                        onTap: (e) {},
                       ),
                       SizedBox(
                         height: 10,
@@ -255,11 +237,12 @@ class MainDrawerWidget extends StatelessWidget {
                         text: "Sign Out".tr,
                         id: 1,
                         onTap: (e) async {
-
                           Get.find<AuthService>().removeCurrentUser();
                           SharedPreff.to.prefss.remove("logindate");
 
-                          Get.offAndToNamed(Routes.SPLASHSCREEN,);
+                          Get.offAndToNamed(
+                            Routes.SPLASHSCREEN,
+                          );
                         },
                       ),
                       DrawerLinkWidget(
@@ -275,7 +258,6 @@ class MainDrawerWidget extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(
               height: 5,
             ),

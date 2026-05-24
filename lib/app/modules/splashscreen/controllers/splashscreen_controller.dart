@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:ecom_delivery_flutter/app/models/notification/popup_image_notification.dart';
+import 'package:ecom_user_flutter/app/models/ecom/notification/popup_image_notification.dart';
 
-import 'package:ecom_delivery_flutter/app/routes/app_pages.dart';
-import 'package:ecom_delivery_flutter/app/services/auth_service.dart';
-import 'package:ecom_delivery_flutter/main.dart';
-import 'package:ecom_delivery_flutter/service/shared_pref.dart';
+import 'package:ecom_user_flutter/app/routes/app_pages.dart';
+import 'package:ecom_user_flutter/app/services/auth_service.dart';
+import 'package:ecom_user_flutter/main.dart';
+import 'package:ecom_user_flutter/service/shared_pref.dart';
 
 
 class SplashscreenController extends GetxController {

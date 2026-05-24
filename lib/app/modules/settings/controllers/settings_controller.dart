@@ -1,7 +1,7 @@
-import 'package:ecom_delivery_flutter/app/api_providers/company_data.dart';
-import 'package:ecom_delivery_flutter/app/repositories/auth_repositories.dart';
-import 'package:ecom_delivery_flutter/app/routes/app_pages.dart';
-import 'package:ecom_delivery_flutter/app/services/auth_service.dart';
+import 'package:ecom_user_flutter/app/api_providers/company_data.dart';
+import 'package:ecom_user_flutter/app/repositories/auth_repositories.dart';
+import 'package:ecom_user_flutter/app/routes/app_pages.dart';
+import 'package:ecom_user_flutter/app/services/auth_service.dart';
 import 'package:get/get.dart';
 
 class SettingsController extends GetxController {

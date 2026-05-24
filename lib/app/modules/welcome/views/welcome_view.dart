@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
-import 'package:ecom_delivery_flutter/app/routes/app_pages.dart';
-import 'package:ecom_delivery_flutter/app/services/auth_service.dart';
-import 'package:ecom_delivery_flutter/common/Color.dart';
+import 'package:ecom_user_flutter/app/routes/app_pages.dart';
+import 'package:ecom_user_flutter/app/services/auth_service.dart';
+import 'package:ecom_user_flutter/common/Color.dart';
 import '../controllers/welcome_controller.dart';
 
 class WelcomeView extends GetView<WelcomeController> {

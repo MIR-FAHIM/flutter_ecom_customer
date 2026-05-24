@@ -1,17 +1,19 @@
-import 'package:ecom_delivery_flutter/app/models/profile_model.dart';
+import 'package:ecom_user_flutter/app/models/ecom/delivery/delivery_report.dart';
+import 'package:ecom_user_flutter/app/models/ecom/profile_model.dart';
 
-import 'package:ecom_delivery_flutter/app/repositories/auth_repositories.dart';
+import 'package:ecom_user_flutter/app/repositories/auth_repositories.dart';
+import 'package:ecom_user_flutter/app/repositories/delivery_rep.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:ecom_delivery_flutter/app/modules/settings/controllers/language_controller.dart';
+import 'package:ecom_user_flutter/app/modules/settings/controllers/language_controller.dart';
 
-import 'package:ecom_delivery_flutter/app/routes/app_pages.dart';
-import 'package:ecom_delivery_flutter/app/services/auth_service.dart';
-import 'package:ecom_delivery_flutter/common/ui.dart';
-import 'package:ecom_delivery_flutter/main.dart';
-import 'package:ecom_delivery_flutter/service/shared_pref.dart';
+import 'package:ecom_user_flutter/app/routes/app_pages.dart';
+import 'package:ecom_user_flutter/app/services/auth_service.dart';
+import 'package:ecom_user_flutter/common/ui.dart';
+import 'package:ecom_user_flutter/main.dart';
+import 'package:ecom_user_flutter/service/shared_pref.dart';
 
 class HomeController extends GetxController {
   //TODO: Implement HomeController
@@ -28,14 +30,14 @@ class HomeController extends GetxController {
   final hideChatBox = false.obs;
 
   final userID = 0.obs;
-
+  final deliveryReport = DeliveryReportModel().obs;
   final box = GetStorage().obs;
   final contactsResult = <Contact>[].obs;
   final profileData = ProfileData().obs;
 
   @override
   Future<void> onInit() async {
-    userID.value = Get.find<AuthService>().currentUser.value.data!.user.id;
+    userID.value = Get.find<AuthService>().currentUser.value.data!.user!.id!;
     getProfile();
 
     super.onInit();

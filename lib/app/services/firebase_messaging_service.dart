@@ -1,9 +1,9 @@
-import 'package:ecom_delivery_flutter/app/modules/auth/login/controllers/login_controller.dart';
+import 'package:ecom_user_flutter/app/modules/auth/login/controllers/login_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:ecom_delivery_flutter/main.dart';
+import 'package:ecom_user_flutter/main.dart';
 
 
 class FireBaseMessagingService extends GetxService {

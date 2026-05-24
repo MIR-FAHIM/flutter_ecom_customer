@@ -1,8 +1,8 @@
-import 'package:ecom_delivery_flutter/app/api_providers/company_data.dart';
-import 'package:ecom_delivery_flutter/common/Color.dart';
+import 'package:ecom_user_flutter/app/api_providers/company_data.dart';
+import 'package:ecom_user_flutter/common/Color.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:ecom_delivery_flutter/common/ui.dart';
+import 'package:ecom_user_flutter/common/ui.dart';
 import '../controllers/splashscreen_controller.dart';
 
 class SplashscreenView extends GetView<SplashscreenController> {

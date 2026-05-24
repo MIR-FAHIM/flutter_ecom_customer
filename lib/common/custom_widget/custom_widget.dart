@@ -3,7 +3,7 @@
 // ignore: non_constant_identifier_names
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:ecom_delivery_flutter/common/color_constant_custom.dart';
+import 'package:ecom_user_flutter/common/color_constant_custom.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 

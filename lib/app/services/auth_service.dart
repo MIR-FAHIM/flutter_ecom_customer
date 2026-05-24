@@ -1,4 +1,4 @@
-import 'package:ecom_delivery_flutter/app/models/auth/customer_model.dart';
+import 'package:ecom_user_flutter/app/models/ecom/auth/customer_model.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 

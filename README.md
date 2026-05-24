@@ -1,4 +1,4 @@
-# ecom_delivery_flutter
+# ecom_user_flutter
 
 A new Flutter project.
 

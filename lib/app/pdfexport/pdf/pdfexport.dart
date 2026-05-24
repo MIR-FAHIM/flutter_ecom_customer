@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:get/get.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
-import 'package:ecom_delivery_flutter/common/custom_data.dart';
+import 'package:ecom_user_flutter/common/custom_data.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 Future<Uint8List> makePdf(

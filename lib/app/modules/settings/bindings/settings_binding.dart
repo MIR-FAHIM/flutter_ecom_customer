@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:ecom_delivery_flutter/app/modules/settings/controllers/language_controller.dart';
+import 'package:ecom_user_flutter/app/modules/settings/controllers/language_controller.dart';
 
 import '../controllers/settings_controller.dart';
 

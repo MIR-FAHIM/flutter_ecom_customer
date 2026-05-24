@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:ecom_delivery_flutter/app/services/auth_service.dart';
+import 'package:ecom_user_flutter/app/services/auth_service.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:ecom_delivery_flutter/app/api_providers/customExceptions.dart';
+import 'package:ecom_user_flutter/app/api_providers/customExceptions.dart';
 
 class APIManager {
 
@@ -13,7 +13,7 @@ class APIManager {
       String url, var param, Map<String, String> headerData) async {
     print("Calling API: $url");
     print("Calling parameters: $param");
-    //headerData["remark"] = "Agent";
+    headerData["Authorization"] = "Bearer ${Get.find<AuthService>().currentUser.value.data!.token}";
 
     print("Calling header: $headerData");
 
@@ -69,7 +69,7 @@ class APIManager {
     print("Calling API: $url");
     print("Calling parameters: $param");
     Map<String, String> headerData = {};
-    headerData["token"] = Get.find<AuthService>().currentUser.value.data!.token!;
+    headerData["Authorization"] = 'Bearer ${Get.find<AuthService>().currentUser.value.data!.token!}';
     print("Calling header: $headerData");
     var responseJson;
     try {
@@ -187,13 +187,99 @@ class APIManager {
   }
 
   Future<dynamic> getWithHeader(
-      String url, Map<String, String> headerData) async {
+      String url, Map<String, String> headerData)
+  async {
     print("Calling API: $url");
-    headerData["remark"] = "Agent";
+    headerData["Authorization"] = "Bearer ${Get.find<AuthService>().currentUser.value.data!.token}";
     print('token: $headerData');
     var responseJson;
     try {
       final response = await http.get(Uri.parse(url), headers: headerData);
+      print(response.body);
+      responseJson = _response(response);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+    return responseJson;
+  }
+
+  Future<dynamic> deleteWithHeader(
+      String url, Map<String, String> headerData)
+  async {
+    print("Calling API: $url");
+    headerData["Authorization"] = "Bearer ${Get.find<AuthService>().currentUser.value.data!.token}";
+    print('token: $headerData');
+    var responseJson;
+    try {
+      final response = await http.delete(Uri.parse(url), headers: headerData);
+      print(response.body);
+      responseJson = _response(response);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+    return responseJson;
+  }
+  Future<dynamic> getWithHeaderAndParam(
+      String url, {
+        Map<String, String>? headers,
+        Map<String, dynamic>? params,
+      }) async {
+    print("Calling API: $url");
+
+    final token = Get.find<AuthService>()
+        .currentUser
+        .value
+        .data!
+        .token;
+
+    final Map<String, String> finalHeaders = {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      ...?headers,
+    };
+
+    // Build URI with query parameters
+    final uri = Uri.parse(url).replace(
+      queryParameters: params?.map(
+            (key, value) => MapEntry(key, value.toString()),
+      ),
+    );
+
+    print('URI: $uri');
+    print('Headers: $finalHeaders');
+
+    try {
+      final response = await http.get(uri, headers: finalHeaders);
+      print('Response: ${response.body}');
+      return _response(response);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+  }
+  Future<dynamic> putWithHeader(
+      String url, Map<String, String> headerData)
+  async {
+    print("Calling API: $url");
+    headerData["Authorization"] = "Bearer ${Get.find<AuthService>().currentUser.value.data!.token}";
+    print('token: $headerData');
+    var responseJson;
+    try {
+      final response = await http.put(Uri.parse(url), headers: headerData);
+      print(response.body);
+      responseJson = _response(response);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+    return responseJson;
+  }
+ Future<dynamic> patchWithHeader(
+      String url, Map<String, String> headerData) async {
+    print("Calling API: $url");
+    headerData["Authorization"] = "Bearer ${Get.find<AuthService>().currentUser.value.data!.token}";
+    print('token: $headerData');
+    var responseJson;
+    try {
+      final response = await http.patch(Uri.parse(url), headers: headerData);
       print(response.body);
       responseJson = _response(response);
     } on SocketException {
@@ -219,7 +305,8 @@ class APIManager {
         throw BadRequestException(response.body.toString());
       case 401:
       case 403:
-        throw UnauthorisedException(response.body.toString());
+      var responseJson = json.decode(response.body.toString());
+      return responseJson;
       case 500:
         throw UnauthorisedException(response.body.toString());
       default:

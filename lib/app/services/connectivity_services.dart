@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:ecom_delivery_flutter/common/ui.dart';
+import 'package:ecom_user_flutter/common/ui.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';

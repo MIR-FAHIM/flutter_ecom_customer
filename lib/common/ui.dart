@@ -8,9 +8,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:ecom_delivery_flutter/app/modules/global_widgets/block_button_widget.dart';
-import 'package:ecom_delivery_flutter/common/Color.dart';
-import 'package:ecom_delivery_flutter/common/custom_data.dart';
+import 'package:ecom_user_flutter/app/modules/global_widgets/block_button_widget.dart';
+import 'package:ecom_user_flutter/common/Color.dart';
+import 'package:ecom_user_flutter/common/custom_data.dart';
 
 class Ui {
   static GetSnackBar SuccessSnackBar(

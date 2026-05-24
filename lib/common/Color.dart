@@ -1,60 +1,130 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary colors
-  static final primaryColor = HexColor("#1F85E2"); // Vibrant orange
-  static final primaryLightColor = HexColor("#BDEFEE"); // Softer orange
+  // ---------------------------------------------------------------------------
+  // Brand Core Colors from PDF Theme
+  // ---------------------------------------------------------------------------
 
-  // Backgrounds
-  static final backgroundColor = HexColor("#1F222D"); // True dark background
+  static final primaryColor = HexColor("#00509D");
+  static final primaryDarkColor = HexColor("#151738");
+  static final primaryNavyColor = HexColor("#2B2C6C");
+  static final primaryLightColor = HexColor("#BDEFEE");
 
-  static final secondbackgroundColor = HexColor("#333749"); // Slightly lighter
-  static final thirdbackgroundColor = HexColor("#1F222D"); // Card backgrounds
+  // ---------------------------------------------------------------------------
+  // Background Colors
+  // ---------------------------------------------------------------------------
 
-  // Text colors
-  static final homeTextColor1 = HexColor("#FFFFFF"); // White text
-  static final homeTextColor2 = HexColor("#E0E0E0"); // Slightly dimmed white
-  static final homeTextColor3 = HexColor("#B0B0B0"); // Hint text color
+  static final backgroundColor = HexColor("#FFFFFF");
+  static final scaffoldBackground = HexColor("#F5F7FB");
+  static final secondbackgroundColor = HexColor("#EEF4FA");
+  static final thirdbackgroundColor = HexColor("#EAF2FA");
 
-  // Status colors
-  static final redTextColor = HexColor("#FF5252"); // Alert red
-  static final greenTextColor = HexColor("#00C853"); // Success green
+  // Product and section backgrounds
+  static final featuredProductBg = HexColor("#ADCBE3");
+  static final allProductBg = HexColor("#F0F0F0");
+  static final cardBackground = HexColor("#FFFFFF");
+  static final softCardBackground = HexColor("#F8FAFC");
 
-  // Accent
-  static final redColor = HexColor("#B70614"); // Amber for highlights
+  // ---------------------------------------------------------------------------
+  // Text Colors
+  // ---------------------------------------------------------------------------
 
-  // Cards and Containers
-  static final homeCardBg = HexColor("#1E1E1E"); // Match secondary bg
-  static final SectionCardBg = HexColor("#2A2A2A");
-  static final tableRowColor = HexColor("#1A1A1A");
-  static final SectionHighLightCardBg = HexColor("#333333");
+  static final homeTextColor1 = HexColor("#151738");
+  static final homeTextColor2 = HexColor("#4B5563");
+  static final homeTextColor3 = HexColor("#9CA3AF");
 
-  // Decorative / Gradients
-  static final primarydeepLightColor = HexColor("#FFAB40"); // Light orange
-  static final dividerColor = HexColor("#2D2D2D"); // Subtle divider
+  static final textPrimary = HexColor("#151738");
+  static final textSecondary = HexColor("#4B5563");
+  static final textMuted = HexColor("#9CA3AF");
+  static final textWhite = HexColor("#FFFFFF");
+  static final textColorBlack = HexColor("#000000");
+  static final textAlt = HexColor("#6B7280");
 
-  // Highlight
-  static final golden = HexColor("#FFC107"); // Golden yellow
+  // ---------------------------------------------------------------------------
+  // Status Colors
+  // ---------------------------------------------------------------------------
 
-  // Gradient Colors
-  static final gradientOne = HexColor("#FF6F00"); // Strong orange
-  static final gradientTwo = HexColor("#FF8F00"); // Lighter orange
+  static final redTextColor = HexColor("#FF5252");
+  static final greenTextColor = HexColor("#00C853");
 
-  // Soft Accents
-  static final softPink = HexColor("#FFCDD2"); // Soft warm contrast
-  static final softBrwn = HexColor("#4E342E"); // Earthy dark brown
+  static final successColor = HexColor("#16A34A");
+  static final warningColor = HexColor("#F59E0B");
+  static final errorColor = HexColor("#EF4444");
+  static final infoColor = HexColor("#2563EB");
 
-  // Text Utilities
-  static Color textAlt = HexColor("#CCCCCC"); // Faded text
-  static Color textColorBlack = HexColor("#000000"); // Absolute black
+  // ---------------------------------------------------------------------------
+  // Offer, Discount and Highlight
+  // ---------------------------------------------------------------------------
+
+  static final golden = HexColor("#FFC107");
+  static final offerYellow = HexColor("#FEFF00");
+  static final discountBlue = HexColor("#00509D");
+  static final redColor = HexColor("#B70614");
+
+  // ---------------------------------------------------------------------------
+  // Category Shortcut Colors from PDF
+  // ---------------------------------------------------------------------------
+
+  static final todayDealColor = HexColor("#DF7529");
+  static final allBrandsColor = HexColor("#428789");
+  static final topSellerColor = HexColor("#AD792D");
+  static final flashSaleColor = HexColor("#2B2C6C");
+  static final newArrivalColor = HexColor("#AF1D5B");
+  static final freeDeliveryColor = HexColor("#BD4D4C");
+
+  // ---------------------------------------------------------------------------
+  // Section Colors from PDF
+  // ---------------------------------------------------------------------------
+
+  static final groceryColor = HexColor("#00509D");
+  static final medicineColor = HexColor("#428789");
+  static final fashionColor = HexColor("#A59E83");
+  static final healthBeautyColor = HexColor("#CE8080");
+  static final electronicsColor = HexColor("#754C29");
+  static final babyCareColor = HexColor("#5BC0DE");
+  static final petCareColor = HexColor("#795548");
+  static final homeApplianceColor = HexColor("#8E7BAA");
+
+  // Soft section backgrounds
+  static Color featuredProductSoftBg = HexColor("#00509D").withOpacity(0.32);
+  static Color fashionSoftBg = HexColor("#A59E83").withOpacity(0.60);
+  static Color healthBeautySoftBg = HexColor("#CE8080").withOpacity(0.36);
+  static Color electronicsSoftBg = HexColor("#754C29").withOpacity(0.36);
+
+  // ---------------------------------------------------------------------------
+  // Borders and Dividers
+  // ---------------------------------------------------------------------------
+
+  static final dividerColor = HexColor("#E5E7EB");
+  static final borderColor = HexColor("#E5E7EB");
+  static final tableRowColor = HexColor("#F8FAFC");
+
+  // ---------------------------------------------------------------------------
+  // Old variable compatibility
+  // Keep these so existing pages do not break immediately
+  // ---------------------------------------------------------------------------
+
+  static final homeCardBg = HexColor("#FFFFFF");
+  static final SectionCardBg = HexColor("#F8FAFC");
+  static final SectionHighLightCardBg = HexColor("#EAF2FA");
+
+  static final primarydeepLightColor = HexColor("#FEFF00");
+
+  static final gradientOne = HexColor("#00509D");
+  static final gradientTwo = HexColor("#2563EB");
+
+  static final softPink = HexColor("#F8DADA");
+  static final softBrwn = HexColor("#754C29");
 }
 
 class HexColor extends Color {
   static int _getColorFromHex(String hexColor) {
     hexColor = hexColor.toUpperCase().replaceAll("#", "");
+
     if (hexColor.length == 6) {
       hexColor = "FF$hexColor";
     }
+
     return int.parse(hexColor, radix: 16);
   }
 

@@ -1,6 +1,6 @@
 {
-    "name": "ecom_delivery_flutter",
-    "short_name": "ecom_delivery_flutter",
+    "name": "ecom_user_flutter",
+    "short_name": "ecom_user_flutter",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
