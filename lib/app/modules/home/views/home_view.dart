@@ -292,7 +292,7 @@ class _PdfStyleHomeHeader extends StatelessWidget {
                 backgroundColor: Colors.white.withOpacity(0.18),
                 child: Icon(
                   Icons.person_outline_rounded,
-                  color: AppColors.homeTextColor1,
+                  color: AppColors.textWhite,
                   size: 28,
                 ),
               ),

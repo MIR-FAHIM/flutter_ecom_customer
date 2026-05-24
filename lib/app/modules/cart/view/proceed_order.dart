@@ -1,384 +1,434 @@
 // lib/app/modules/order/views/proceed_order_page.dart
-//
-// ProceedOrderPage UI based on your screenshot:
-// 1) AppBar with back + title
-// 2) Select Address section (top)
-// 3) Cart list section
-// 4) Payment method card (Cash on Delivery) with selected check
-// 5) Coupon input + Apply button
-// 6) Total amount bar + bottom "PLACE MY ORDER" button
-//
-// Notes:
-// - This page is GetX-first and uses GetView.
-// - It assumes you already have:
-//   - CartController exposing: cartLoading, cartError, cart (Rxn<CartModel>), updateQty(itemId, qty), removeItem(itemId)
-//   - AddressController exposing: isLoading, error, addresses (RxList<AddressModel>), selectedAddress (Rxn<AddressModel>), selectAddress(AddressModel)
-// - If your controllers have different names, just change the imports and variables.
 
 import 'package:ecom_user_flutter/app/api_providers/company_data.dart';
 import 'package:ecom_user_flutter/app/models/ecom/order/cart_model.dart';
-import 'package:ecom_user_flutter/app/models/ecom/order/user_address_model.dart';
+import 'package:ecom_user_flutter/app/modules/cart/controller/cart_controller.dart';
 import 'package:ecom_user_flutter/app/modules/cart/view/widgets/selected_address.dart';
-import 'package:ecom_user_flutter/app/modules/cart/view/widgets/user_address.dart';
-import 'package:ecom_user_flutter/app/modules/order/controller/order_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+class ProceedOrderPage extends StatefulWidget {
+  const ProceedOrderPage({super.key});
 
+  @override
+  State<ProceedOrderPage> createState() => _ProceedOrderPageState();
+}
 
-// Change these imports to your actual controller paths:
-import 'package:ecom_user_flutter/app/modules/cart/controller/cart_controller.dart';
-
-
-class ProceedOrderPage extends GetView<CartController> {
-  ProceedOrderPage({super.key});
-
-
-
-  // UI-only state
+class _ProceedOrderPageState extends State<ProceedOrderPage> {
+  final CartController controller = Get.find<CartController>();
   final TextEditingController couponCtrl = TextEditingController();
-  final RxString selectedPayment = 'cod'.obs; // only COD for now
 
-  static const Color navy = Color(0xFF1F214C);
-  static const Color beige = Color(0xFFF6E7CC);
+  String selectedPayment = 'cod';
+
+  static const Color _navy = Color(0xFF1F214C);
+  static const Color _bg = Color(0xFFF7F8FA);
+  static const Color _softBeige = Color(0xFFFFF3DF);
+  static const Color _line = Color(0xFFE9EAF0);
+
+  @override
+  void dispose() {
+    couponCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-
+      backgroundColor: _bg,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: Text(
           'Checkout',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: navy,
+            color: _navy,
             fontWeight: FontWeight.w900,
           ),
         ),
       ),
-
       bottomNavigationBar: Obx(() {
         final cart = controller.cart.value;
-        final subtotal = cart?.subtotal ?? 0.0;
+        final items = cart?.items ?? const <CartItem>[];
+        final hasItems = items.isNotEmpty;
 
-        return SafeArea(
-          top: false,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 18,
-                  color: Colors.black.withOpacity(0.08),
-                  offset: const Offset(0, -6),
+        return _CheckoutBottomBar(
+          couponCtrl: couponCtrl,
+          total: controller.totalAmount.value,
+          enabled: hasItems,
+          onApplyCoupon: _applyCoupon,
+          onDetails: () => _showTotalDetailsBottomSheet(
+            context,
+            totalItems: items.length,
+            subtotal: controller.totalAmount.value,
+          ),
+          onPlaceOrder: () => _placeOrder(cart),
+        );
+      }),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const _PageLoader();
+        }
+
+        final cart = controller.cart.value;
+        final items = cart?.items ?? const <CartItem>[];
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            controller.getActiveCart(reset: true);
+          },
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                sliver: const SliverToBoxAdapter(child: _CheckoutProgress()),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+                sliver: const SliverToBoxAdapter(
+                  child: _SectionHeader(title: 'Delivery address'),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SelectedAddress()),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                sliver: SliverToBoxAdapter(
+                  child: _SectionHeader(
+                    title: 'Items',
+                    trailing: '${items.length} item${items.length == 1 ? '' : 's'}',
+                  ),
+                ),
+              ),
+              if (items.isEmpty)
+                const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 14),
+                  sliver: SliverToBoxAdapter(child: _EmptyItemsCard()),
                 )
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Coupon row
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-                  child: _CouponRow(
-                    controller: couponCtrl,
-                    onApply: () {
-                      // TODO: call coupon API when available
-                      FocusScope.of(context).unfocus();
-                      Get.snackbar('Coupon', 'Apply coupon not wired yet');
-                    },
-                  ),
-                ),
-
-                // Total bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: _TotalBar(
-                    label: 'Total Amount',
-                    amount: 44,
-                    onDetails: () {
-                      // Optional: show breakdown modal
-                      _showTotalDetailsBottomSheet(
-                        context,
-                        totalItems: cart?.totalItems ?? 0,
-                        subtotal: 55,
-                      );
-                    },
-                  ),
-                ),
-
-                // Place order button
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                  child: SizedBox(
-                    height: 54,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: navy,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {
-                        final selectedAddress = controller.selectedAddress;
-
-                        if (selectedAddress == null) {
-                          Get.snackbar(
-                            'Address Required',
-                            'Please add or select a delivery address first.',
-                            snackPosition: SnackPosition.BOTTOM,
-                          );
-                          return;
-                        }
-                        if ((cart?.items ?? []).isEmpty) {
-                          Get.snackbar('Cart', 'Your cart is empty');
-                          return;
-                        }
-
-                        controller.proceedToShipping(
-
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                        if (index.isOdd) return const SizedBox(height: 12);
+                        final itemIndex = index ~/ 2;
+                        final item = items[itemIndex];
+                        return _CheckoutCartItemCard(
+                          key: ValueKey(_itemKey(item, itemIndex)),
+                          item: item,
+                          index: itemIndex,
                         );
                       },
-                      child: const Text(
-                        'PLACE MY ORDER',
-                        style: TextStyle(fontWeight: FontWeight.w900),
-                      ),
+                      childCount: items.length * 2 - 1,
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        );
-      }),
-
-      body: Obx(() {
-        // Cart state
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-
-        final cart = controller.cart.value;
-
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1) Address selection section
-
-
-
-              SelectedAddress(),
-              const SizedBox(height: 14),
-
-              // 2) Cart list
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
-                child: Text(
-                  'Items',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black87,
-                  ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                sliver: const SliverToBoxAdapter(
+                  child: _SectionHeader(title: 'Payment Method'),
                 ),
               ),
-
-              if ((cart?.items ?? []).isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(14),
-                  child: Text(
-                    'No items in cart',
-                    style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black54),
-                  ),
-                )
-              else
-                Container(
-                  height: Get.height*.4,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                    shrinkWrap: true,
-                  //  physics: const NeverScrollableScrollPhysics(),
-                    itemCount: cart!.items!.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (_, i) {
-                      final item = cart.items![i];
-                      return _CheckoutCartItemCard(
-                        item: item,
-
-                      );
-                    },
-                  ),
-                ),
-
-              const SizedBox(height: 6),
-
-              // 3) Payment method section (COD)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-                child: Text(
-                  'Payment Method',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
-                child: Obx(() {
-                  final isSelected = selectedPayment.value == 'cod';
-                  return _PaymentMethodCard(
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 150),
+                sliver: SliverToBoxAdapter(
+                  child: _PaymentMethodCard(
                     title: 'Cash on Delivery',
-                    isSelected: isSelected,
-                    onTap: () => selectedPayment.value = 'cod',
-                  );
-                }),
+                    subtitle: 'Pay when you receive your order',
+                    isSelected: selectedPayment == 'cod',
+                    onTap: () => setState(() => selectedPayment = 'cod'),
+                  ),
+                ),
               ),
-
-              const SizedBox(height: 100), // space above bottom bar
             ],
           ),
         );
       }),
     );
+  }
+
+  void _applyCoupon() {
+    FocusScope.of(context).unfocus();
+    final coupon = couponCtrl.text.trim();
+
+    if (coupon.isEmpty) {
+      Get.snackbar(
+        'Coupon',
+        'Please enter a coupon code first.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    Get.snackbar(
+      'Coupon',
+      'Coupon apply API is not connected yet.',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  void _placeOrder(CartModel? cart) {
+    final items = cart?.items ?? const <CartItem>[];
+
+    if (!_hasSelectedAddress()) {
+      Get.snackbar(
+        'Address Required',
+        'Please add or select a delivery address first.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    if (items.isEmpty) {
+      Get.snackbar(
+        'Cart',
+        'Your cart is empty.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    controller.proceedToShipping();
+  }
+
+  bool _hasSelectedAddress() {
+    final dynamic selected = controller.selectedAddress;
+
+    try {
+      return selected.value != null;
+    } catch (_) {
+      return selected != null;
+    }
   }
 
   void _showTotalDetailsBottomSheet(
       BuildContext context, {
         required int totalItems,
-        required double subtotal,
+        required num subtotal,
       }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
       builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 48,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(99),
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Total details',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                const SizedBox(height: 16),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Total details',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              _kv('Items', '$totalItems'),
-              const SizedBox(height: 8),
-              _kv('Subtotal', '৳${subtotal.toStringAsFixed(2)}'),
-              const SizedBox(height: 14),
-            ],
+                const SizedBox(height: 14),
+                _KeyValueRow(label: 'Items', value: '$totalItems'),
+                const SizedBox(height: 10),
+                _KeyValueRow(label: 'Subtotal', value: _money(subtotal)),
+                const SizedBox(height: 10),
+                const Divider(height: 18),
+                _KeyValueRow(label: 'Total', value: _money(subtotal), strong: true),
+              ],
+            ),
           ),
         );
       },
     );
   }
+}
 
-  Widget _kv(String k, String v) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            k,
-            style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w700),
+class _CheckoutProgress extends StatelessWidget {
+  const _CheckoutProgress();
+
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _softBeige = _ProceedOrderPageState._softBeige;
+  static const Color _line = _ProceedOrderPageState._line;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.04),
           ),
+        ],
+      ),
+      child: Row(
+        children: const [
+          _StepBubble(icon: Icons.shopping_cart_checkout_rounded, label: 'Cart', done: true),
+          Expanded(child: _StepLine()),
+          _StepBubble(icon: Icons.location_on_outlined, label: 'Checkout', done: true),
+          Expanded(child: _StepLine(active: false)),
+          _StepBubble(icon: Icons.check_circle_outline_rounded, label: 'Confirm', done: false),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepBubble extends StatelessWidget {
+  const _StepBubble({required this.icon, required this.label, required this.done});
+
+  final IconData icon;
+  final String label;
+  final bool done;
+
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _softBeige = _ProceedOrderPageState._softBeige;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: done ? _navy : _softBeige,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: done ? Colors.white : _navy, size: 20),
         ),
+        const SizedBox(height: 6),
         Text(
-          v,
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w900),
+          label,
+          style: TextStyle(
+            color: done ? _navy : Colors.black45,
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ],
     );
   }
 }
 
+class _StepLine extends StatelessWidget {
+  const _StepLine({this.active = true});
 
-class _CheckoutCartItemCard extends StatelessWidget {
-  const _CheckoutCartItemCard({
-    required this.item,
+  final bool active;
 
-  });
-
-  final CartItem item;
-
-
-  static const Color navy = Color(0xFF1F214C);
+  static const Color _navy = _ProceedOrderPageState._navy;
 
   @override
   Widget build(BuildContext context) {
+    return Container(
+      height: 2,
+      margin: const EdgeInsets.only(bottom: 20, left: 6, right: 6),
+      decoration: BoxDecoration(
+        color: active ? _navy.withOpacity(0.5) : Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(999),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, this.trailing});
+
+  final String title;
+  final String? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        if (trailing != null)
+          Text(
+            trailing!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Colors.black45,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _CheckoutCartItemCard extends StatelessWidget {
+  const _CheckoutCartItemCard({super.key, required this.item, required this.index});
+
+  final CartItem item;
+  final int index;
+
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _line = _ProceedOrderPageState._line;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final product = item.product;
     final title = product?.name ?? 'Product';
-    final price = item.unitPrice;
-    final qty = item.qty;
-    final imgPath = item.product?.primaryImage?.fileName;
-    final imgUrl = _asImageUrl(imgPath);
+    final price = item.unitPrice ?? product?.unitPrice ?? 0;
+    final qty = item.qty ?? 0;
+    final imgUrl = _asImageUrl(product?.primaryImage?.fileName);
 
-
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
         boxShadow: [
           BoxShadow(
-            blurRadius: 22,
-            color: Colors.black.withOpacity(0.06),
-            offset: const Offset(0, 12),
-          )
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.045),
+          ),
         ],
       ),
       child: Row(
         children: [
-          // image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: 74,
-              height: 74,
-              color: Colors.grey.shade100,
-              child: (imgUrl == null || imgUrl.isEmpty)
-                  ? const Icon(Icons.image_outlined, color: Colors.black45)
-                  : Image.network(
-                imgUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.broken_image_outlined,
-                  color: Colors.black45,
-                ),
-              ),
-            ),
+          Hero(
+            tag: _heroTag(item, index),
+            child: _ProductImage(url: imgUrl, size: 74),
           ),
-
           const SizedBox(width: 12),
-
-          // title + price
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,30 +437,22 @@ class _CheckoutCartItemCard extends StatelessWidget {
                   title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                     color: Colors.black87,
+                    height: 1.25,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    _QtyChip(qty: qty),
+                    const Spacer(),
                     Text(
-                      'Qty: ${qty.toString()}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.normal,
-                        color: navy,
-                        fontSize: 12,
-                      ),
-                    ),
-
-                    Text(
-                      '৳${price!.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      _money(price),
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w900,
-                        color: navy,
-                        fontSize: 16,
+                        color: _navy,
                       ),
                     ),
                   ],
@@ -418,38 +460,35 @@ class _CheckoutCartItemCard extends StatelessWidget {
               ],
             ),
           ),
-
-          const SizedBox(width: 10),
-
-
-
-
         ],
       ),
     );
   }
 }
 
-class _QtyIconBtn extends StatelessWidget {
-  const _QtyIconBtn({required this.icon, required this.onTap});
+class _QtyChip extends StatelessWidget {
+  const _QtyChip({required this.qty});
 
-  final IconData icon;
-  final VoidCallback onTap;
+  final int qty;
+
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _softBeige = _ProceedOrderPageState._softBeige;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade200),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: _softBeige,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        'Qty $qty',
+        style: const TextStyle(
+          color: _navy,
+          fontWeight: FontWeight.w900,
+          fontSize: 12,
         ),
-        child: Icon(icon, color: Colors.black87, size: 20),
       ),
     );
   }
@@ -458,60 +497,190 @@ class _QtyIconBtn extends StatelessWidget {
 class _PaymentMethodCard extends StatelessWidget {
   const _PaymentMethodCard({
     required this.title,
+    required this.subtitle,
     required this.isSelected,
     required this.onTap,
   });
 
   final String title;
+  final String subtitle;
   final bool isSelected;
   final VoidCallback onTap;
 
-  static const Color navy = Color(0xFF1F214C);
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _line = _ProceedOrderPageState._line;
+  static const Color _softBeige = _ProceedOrderPageState._softBeige;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
+      borderRadius: BorderRadius.circular(18),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
         width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: navy, width: 1.4),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: isSelected ? _navy : _line, width: isSelected ? 1.4 : 1),
           boxShadow: [
             BoxShadow(
-              blurRadius: 22,
-              color: Colors.black.withOpacity(0.06),
-              offset: const Offset(0, 12),
-            )
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+              color: Colors.black.withOpacity(0.045),
+            ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 54,
-              height: 44,
+              width: 50,
+              height: 46,
               decoration: BoxDecoration(
-                color: const Color(0xFFF4B73E),
-                borderRadius: BorderRadius.circular(10),
+                color: _softBeige,
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.local_shipping_outlined, color: Colors.white),
+              child: const Icon(Icons.local_shipping_outlined, color: _navy),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black87,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: Icon(
+                isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                key: ValueKey(isSelected),
+                color: isSelected ? Colors.green : Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckoutBottomBar extends StatelessWidget {
+  const _CheckoutBottomBar({
+    required this.couponCtrl,
+    required this.total,
+    required this.enabled,
+    required this.onApplyCoupon,
+    required this.onDetails,
+    required this.onPlaceOrder,
+  });
+
+  final TextEditingController couponCtrl;
+  final num total;
+  final bool enabled;
+  final VoidCallback onApplyCoupon;
+  final VoidCallback onDetails;
+  final VoidCallback onPlaceOrder;
+
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _softBeige = _ProceedOrderPageState._softBeige;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 24,
+              offset: const Offset(0, -8),
+              color: Colors.black.withOpacity(0.08),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _CouponRow(controller: couponCtrl, onApply: onApplyCoupon),
+            const SizedBox(height: 10),
+            InkWell(
+              onTap: onDetails,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                height: 52,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: _softBeige,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Total Amount',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.black45, size: 20),
+                    const Spacer(),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: Text(
+                        _money(total),
+                        key: ValueKey(total),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: _navy,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            Icon(
-              isSelected ? Icons.check_circle : Icons.circle_outlined,
-              color: isSelected ? Colors.green : Colors.grey.shade400,
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 54,
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  backgroundColor: _navy,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: enabled ? onPlaceOrder : null,
+                child: const Text(
+                  'PLACE MY ORDER',
+                  style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
+                ),
+              ),
             ),
           ],
         ),
@@ -521,55 +690,54 @@ class _PaymentMethodCard extends StatelessWidget {
 }
 
 class _CouponRow extends StatelessWidget {
-  const _CouponRow({
-    required this.controller,
-    required this.onApply,
-  });
+  const _CouponRow({required this.controller, required this.onApply});
 
   final TextEditingController controller;
   final VoidCallback onApply;
 
-  static const Color navy = Color(0xFF1F214C);
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _line = _ProceedOrderPageState._line;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 52,
+      height: 50,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: const Color(0xFFF8F9FB),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _line),
       ),
       child: Row(
         children: [
+          const SizedBox(width: 10),
+          const Icon(Icons.confirmation_number_outlined, size: 20, color: Colors.black45),
           Expanded(
             child: TextField(
               controller: controller,
+              textInputAction: TextInputAction.done,
               decoration: const InputDecoration(
                 hintText: 'Enter coupon code',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                contentPadding: EdgeInsets.symmetric(horizontal: 10),
               ),
             ),
           ),
-          SizedBox(
-            height: 52,
-            width: 140,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: navy,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
+          Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: SizedBox(
+              height: 40,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  backgroundColor: _navy,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+                ),
+                onPressed: onApply,
+                child: const Text(
+                  'Apply',
+                  style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
                 ),
               ),
-              onPressed: onApply,
-              child: const Text(
-                'APPLY COUPON',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-              ),
             ),
           ),
         ],
@@ -578,94 +746,129 @@ class _CouponRow extends StatelessWidget {
   }
 }
 
-class _TotalBar extends StatelessWidget {
-  const _TotalBar({
-    required this.label,
-    required this.amount,
-    required this.onDetails,
-  });
+class _KeyValueRow extends StatelessWidget {
+  const _KeyValueRow({required this.label, required this.value, this.strong = false});
 
   final String label;
-  final double amount;
-  final VoidCallback onDetails;
+  final String value;
+  final bool strong;
 
-  static const Color beige = Color(0xFFF6E7CC);
+  static const Color _navy = _ProceedOrderPageState._navy;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: beige,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black87),
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: strong ? Colors.black87 : Colors.black54,
+              fontWeight: strong ? FontWeight.w900 : FontWeight.w700,
             ),
           ),
-          InkWell(
-            onTap: onDetails,
-            child: const Text(
-              'see details',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: Colors.black54,
-                decoration: TextDecoration.underline,
-              ),
-            ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: strong ? _navy : Colors.black87,
+            fontWeight: FontWeight.w900,
           ),
-          const SizedBox(width: 12),
-          Text(
-            '৳${amount.toStringAsFixed(2)}',
-            style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black87),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
+class _ProductImage extends StatelessWidget {
+  const _ProductImage({required this.url, required this.size});
 
-  final String message;
-  final VoidCallback onRetry;
+  final String url;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
-          ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        width: size,
+        height: size,
+        color: Colors.grey.shade100,
+        child: url.isEmpty
+            ? const Icon(Icons.image_outlined, color: Colors.black38, size: 30)
+            : Image.network(
+          url,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+          errorBuilder: (_, __, ___) => const Icon(
+            Icons.broken_image_outlined,
+            color: Colors.black38,
+            size: 30,
+          ),
         ),
       ),
     );
   }
 }
+
+class _EmptyItemsCard extends StatelessWidget {
+  const _EmptyItemsCard();
+
+  static const Color _line = _ProceedOrderPageState._line;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: const Text(
+        'No items in cart',
+        style: TextStyle(fontWeight: FontWeight.w800, color: Colors.black54),
+      ),
+    );
+  }
+}
+
+class _PageLoader extends StatelessWidget {
+  const _PageLoader();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: CircularProgressIndicator());
+  }
+}
+
+String _money(num? value) {
+  return '৳${(value ?? 0).toStringAsFixed(2)}';
+}
+
 String _asImageUrl(String? fileName) {
   if (fileName == null || fileName.trim().isEmpty) return '';
-
-  // Your API returns "uploads/all/xxx.jpg"
-  // In many setups: "${CompanyData.baseUrl}/public/$fileName"
-  // If you already store full URL in DB, just return fileName.
   if (fileName.startsWith('http')) return fileName;
+  return '${CompanyData.image_file_url}/$fileName';
+}
 
-  return "${CompanyData.image_file_url}/$fileName";
+String _heroTag(CartItem item, int index) {
+  final product = item.product;
+  final raw = product?.primaryImage?.fileName ?? product?.name ?? index.toString();
+  return 'cart_product_image_$raw';
+}
+
+String _itemKey(CartItem item, int index) {
+  final product = item.product;
+  return product?.primaryImage?.fileName ?? product?.name ?? index.toString();
 }
