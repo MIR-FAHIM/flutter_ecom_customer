@@ -403,7 +403,11 @@ class CartController extends GetxController {
     required String shippingAddress,
     required String zone,
     required String isOutsideDhaka,
+    required String shippingCost,
+    required String amount,
+    required String paymentMethod,
     String note = '',
+    String platform = 'web',
   }) {
     return <String, String>{
       'user_id': userId,
@@ -413,6 +417,11 @@ class CartController extends GetxController {
       'zone': zone,
       'note': note,
       'is_outside_dhaka': isOutsideDhaka,
+      'shipping_cost': shippingCost,
+      'amount': amount,
+      'total_amount': amount,
+      'payment_method': paymentMethod,
+      'platform': platform,
     };
   }
 
@@ -445,47 +454,57 @@ class CartController extends GetxController {
       return;
     }
 
+    final address = selectedAddress;
+    if (address == null) {
+      Get.snackbar('Address Required', 'Please select a shipping address');
+      return;
+    }
+
+    final payableAmount = totalAmount.value + shippingCharge.value;
     final payload = buildCheckoutPayload(
       userId:
           Get.find<AuthService>().currentUser.value.data!.user!.id.toString(),
-      customerName:
+      customerName: address.name?.toString() ??
           Get.find<AuthService>().currentUser.value.data!.user!.name.toString(),
-      customerPhone: selectedAddress.mobile.toString(),
-      shippingAddress:
-          selectedAddress.address?.toString() ?? 'No address details',
-      zone: 'zone',
-      note: noteCtrl.value.text.isEmpty ? 'No Note' : noteCtrl.value.text,
+      customerPhone: address.mobile.toString(),
+      shippingAddress: _selectedShippingAddress(address),
+      zone: address.district?.toString() ?? '',
+      note: noteCtrl.value.text,
       isOutsideDhaka: isOutsideDhaka.value.toString(),
+      shippingCost: shippingCharge.value.toString(),
+      amount: payableAmount.toString(),
+      paymentMethod: 'cod',
     );
 
     isLoading.value = true;
     error.value = '';
 
-    final res = await _repo.checkout(payload); // implement in repo
+    try {
+      final res = await _repo.checkout(payload);
 
-    if (res is Map && res['status'] == 'success') {
-      // After successful checkout, refresh cart
-      await getActiveCart(reset: true);
+      if (_isSuccessResponse(res)) {
+        await getActiveCart(reset: true);
 
-      print("i am here 4554 $res");
-      final checkoutResponse = CheckoutSuccessResponse.fromJson(
-        Map<String, dynamic>.from(res),
-      );
+        print("i am here 4554 $res");
+        final checkoutResponse = CheckoutSuccessResponse.fromJson(
+          Map<String, dynamic>.from(res),
+        );
 
-      Get.offNamed(
-        Routes.CHECKOUT_SUCCESS,
-        arguments: checkoutResponse,
-      );
-      // Navigate if you want:
-      Get.offNamed(Routes.CHECKOUT_SUCCESS, arguments: {
-        'order_id': res['data'][0]['order_number'],
-        'amount': res['data'][0]['total'].toString(),
-      });
-    } else {
+        Get.offNamed(
+          Routes.CHECKOUT_SUCCESS,
+          arguments: checkoutResponse,
+        );
+        return;
+      }
+
       print("i am here 4554 ");
-      error.value =
-          (res is Map ? (res['message']?.toString() ?? 'Failed') : 'Failed');
+      error.value = _responseMessage(res, fallback: 'Failed to place order');
       Get.snackbar('Order', error.value);
+    } catch (e) {
+      error.value = e.toString();
+      Get.snackbar('Order', error.value);
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -501,31 +520,50 @@ class CartController extends GetxController {
       return;
     }
 
-    final payload = buildCheckoutPayload(
+    final address = selectedAddress;
+    if (address == null) {
+      Get.snackbar('Address Required', 'Please select a shipping address');
+      return;
+    }
+
+    final checkoutPayload = buildCheckoutPayload(
       userId:
           Get.find<AuthService>().currentUser.value.data!.user!.id.toString(),
-      customerName:
+      customerName: address.name?.toString() ??
           Get.find<AuthService>().currentUser.value.data!.user!.name.toString(),
-      customerPhone: selectedAddress.mobile.toString(),
-      shippingAddress:
-          selectedAddress.address?.toString() ?? 'No address details',
-      zone: 'zone',
-      note: noteCtrl.value.text.isEmpty ? 'No Note' : noteCtrl.value.text,
+      customerPhone: address.mobile.toString(),
+      shippingAddress: _selectedShippingAddress(address),
+      zone: address.district?.toString() ?? '',
+      note: noteCtrl.value.text,
       isOutsideDhaka: isOutsideDhakaValue.toString(),
+      shippingCost: shippingCharge.value.toString(),
+      amount: amount.toString(),
+      paymentMethod: 'online',
     );
-
-    payload.addAll(<String, String>{
-      'amount': amount.toString(),
-      'total_amount': amount.toString(),
-      'shipping_charge': shippingCharge.value.toString(),
-      'payment_method': 'aamarpay',
-    });
 
     isLoading.value = true;
     error.value = '';
 
     try {
-      final res = await _repo.initiateAamarPayPayment(payload);
+      final orderRes = await _repo.checkout(checkoutPayload);
+
+      if (!_isSuccessResponse(orderRes)) {
+        error.value = _responseMessage(
+          orderRes,
+          fallback: 'Failed to create order for online payment',
+        );
+        Get.snackbar('Online Payment', error.value);
+        return;
+      }
+
+      final paymentPayload = _readOrderPaymentReference(orderRes);
+      if (paymentPayload.isEmpty) {
+        error.value = 'Order created, but payment reference was missing.';
+        Get.snackbar('Online Payment', error.value);
+        return;
+      }
+
+      final res = await _repo.initiateAamarPayPayment(paymentPayload);
 
       if (res is Map) {
         final paymentUrl = _readPaymentUrl(res);
@@ -554,6 +592,80 @@ class CartController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  String _selectedShippingAddress(dynamic address) {
+    final parts = <String>[
+      address.address?.toString() ?? '',
+      address.area?.toString() ?? '',
+      address.district?.toString() ?? '',
+    ].where((part) => part.trim().isNotEmpty).toList();
+
+    return parts.isEmpty ? 'No address details' : parts.join(', ');
+  }
+
+  bool _isSuccessResponse(dynamic response) {
+    if (response is! Map) return false;
+
+    final status = response['status']?.toString().toLowerCase();
+    if (status == 'success') return true;
+
+    final success = response['success'];
+    return success == true || success?.toString().toLowerCase() == 'true';
+  }
+
+  String _responseMessage(dynamic response, {required String fallback}) {
+    if (response is Map) {
+      return response['message']?.toString() ??
+          response['error']?.toString() ??
+          fallback;
+    }
+
+    return fallback;
+  }
+
+  Map<String, String> _readOrderPaymentReference(dynamic value) {
+    final payload = <String, String>{};
+    final orderId = _findStringValue(value, const {'order_id'}) ??
+        _findStringValue(value, const {'id'});
+    final paymentGroupId = _findStringValue(
+      value,
+      const {'payment_group_id', 'paymentGroupId'},
+    );
+
+    if (orderId != null && orderId.isNotEmpty) {
+      payload['order_id'] = orderId;
+    }
+    if (paymentGroupId != null && paymentGroupId.isNotEmpty) {
+      payload['payment_group_id'] = paymentGroupId;
+    }
+
+    return payload;
+  }
+
+  String? _findStringValue(dynamic value, Set<String> keys) {
+    if (value is Map) {
+      for (final key in keys) {
+        final item = value[key];
+        if (item != null && item.toString().trim().isNotEmpty) {
+          return item.toString();
+        }
+      }
+
+      for (final item in value.values) {
+        final result = _findStringValue(item, keys);
+        if (result != null && result.isNotEmpty) return result;
+      }
+    }
+
+    if (value is List) {
+      for (final item in value) {
+        final result = _findStringValue(item, keys);
+        if (result != null && result.isNotEmpty) return result;
+      }
+    }
+
+    return null;
   }
 
   String _readPaymentUrl(dynamic value) {

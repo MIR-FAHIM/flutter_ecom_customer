@@ -69,7 +69,9 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
         return _CheckoutBottomBar(
           couponCtrl: couponCtrl,
           total: payableTotal,
-          enabled: hasItems,
+          enabled: hasItems && !controller.isLoading.value,
+          buttonLabel:
+              isOnlinePayment ? 'CONTINUE TO PAYMENT' : 'PLACE MY ORDER',
           onApplyCoupon: _applyCoupon,
           onDetails: () => _showTotalDetailsBottomSheet(
             context,
@@ -764,8 +766,8 @@ class _PaymentMethodGroup extends StatelessWidget {
           _PaymentMethodOption(
             icon: Icons.credit_card_rounded,
             title: 'Online Payment',
-            subtitle: 'Pay now using card or mobile banking',
-            badge: 'Coming soon',
+            subtitle: 'Pay securely through AamarPay',
+            badge: 'AamarPay',
             selected: selectedPayment == 'online',
             onTap: () => onChanged('online'),
           ),
@@ -926,6 +928,7 @@ class _CheckoutBottomBar extends StatelessWidget {
     required this.couponCtrl,
     required this.total,
     required this.enabled,
+    required this.buttonLabel,
     required this.onApplyCoupon,
     required this.onDetails,
     required this.onPlaceOrder,
@@ -934,6 +937,7 @@ class _CheckoutBottomBar extends StatelessWidget {
   final TextEditingController couponCtrl;
   final num total;
   final bool enabled;
+  final String buttonLabel;
   final VoidCallback onApplyCoupon;
   final VoidCallback onDetails;
   final VoidCallback onPlaceOrder;
@@ -1016,9 +1020,9 @@ class _CheckoutBottomBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14)),
                 ),
                 onPressed: enabled ? onPlaceOrder : null,
-                child: const Text(
-                  'PLACE MY ORDER',
-                  style: TextStyle(
+                child: Text(
+                  buttonLabel,
+                  style: const TextStyle(
                       fontWeight: FontWeight.w900, color: Colors.white),
                 ),
               ),

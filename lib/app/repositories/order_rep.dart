@@ -10,6 +10,8 @@ class OrderRepository {
   Map<String, String> get header => {
         'Authorization':
             'Bearer ${Get.find<AuthService>().currentUser.value.data!.token}',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
       };
 
   /// User login api call
