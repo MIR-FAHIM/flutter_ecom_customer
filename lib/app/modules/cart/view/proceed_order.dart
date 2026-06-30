@@ -15,14 +15,16 @@ class ProceedOrderPage extends StatefulWidget {
 }
 
 class _ProceedOrderPageState extends State<ProceedOrderPage> {
-  final CartController controller = Get.find<CartController>();
   final TextEditingController couponCtrl = TextEditingController();
 
   String selectedPayment = 'cod';
   int isOutsideDhaka = 0;
 
+  CartController get controller => Get.find<CartController>();
+
   int get shippingCharge => isOutsideDhaka == 1 ? 120 : 60;
   num get payableTotal => controller.totalAmount.value + shippingCharge;
+  bool get isOnlinePayment => selectedPayment == 'online';
 
   static const Color _navy = Color(0xFF1F214C);
   static const Color _bg = Color(0xFFF7F8FA);
@@ -46,7 +48,8 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
         surfaceTintColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.black87, size: 20),
           onPressed: () => Get.back(),
         ),
         centerTitle: true,
@@ -91,7 +94,8 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
             controller.getActiveCart(reset: true);
           },
           child: CustomScrollView(
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics()),
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -128,7 +132,8 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
                 sliver: SliverToBoxAdapter(
                   child: _SectionHeader(
                     title: 'Items',
-                    trailing: '${items.length} item${items.length == 1 ? '' : 's'}',
+                    trailing:
+                        '${items.length} item${items.length == 1 ? '' : 's'}',
                   ),
                 ),
               ),
@@ -142,7 +147,7 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                          (context, index) {
+                      (context, index) {
                         if (index.isOdd) return const SizedBox(height: 12);
                         final itemIndex = index ~/ 2;
                         final item = items[itemIndex];
@@ -171,17 +176,19 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                 sliver: const SliverToBoxAdapter(
-                  child: _SectionHeader(title: 'Payment Method'),
+                  child: _SectionHeader(title: 'Payment method'),
                 ),
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 150),
                 sliver: SliverToBoxAdapter(
-                  child: _PaymentMethodCard(
-                    title: 'Cash on Delivery',
-                    subtitle: 'Pay when you receive your order',
-                    isSelected: selectedPayment == 'cod',
-                    onTap: () => setState(() => selectedPayment = 'cod'),
+                  child: _PaymentMethodGroup(
+                    selectedPayment: selectedPayment,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPayment = value;
+                      });
+                    },
                   ),
                 ),
               ),
@@ -233,6 +240,16 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
       return;
     }
 
+    if (isOnlinePayment) {
+      controller.isOutsideDhaka.value = isOutsideDhaka;
+      controller.shippingCharge.value = shippingCharge;
+      controller.initiateAamarPayPayment(
+        amount: payableTotal,
+        isOutsideDhakaValue: isOutsideDhaka,
+      );
+      return;
+    }
+
     controller.isOutsideDhaka.value = isOutsideDhaka;
     controller.shippingCharge.value = shippingCharge;
     controller.proceedToShipping();
@@ -249,12 +266,12 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
   }
 
   void _showTotalDetailsBottomSheet(
-      BuildContext context, {
-        required int totalItems,
-        required num subtotal,
-        required num shippingCharge,
-        required num total,
-      }) {
+    BuildContext context, {
+    required int totalItems,
+    required num subtotal,
+    required num shippingCharge,
+    required num total,
+  }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -290,10 +307,12 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
                 const SizedBox(height: 10),
                 _KeyValueRow(label: 'Subtotal', value: _money(subtotal)),
                 const SizedBox(height: 10),
-                _KeyValueRow(label: 'Shipping charge', value: _money(shippingCharge)),
+                _KeyValueRow(
+                    label: 'Shipping charge', value: _money(shippingCharge)),
                 const SizedBox(height: 10),
                 const Divider(height: 18),
-                _KeyValueRow(label: 'Total', value: _money(total), strong: true),
+                _KeyValueRow(
+                    label: 'Total', value: _money(total), strong: true),
               ],
             ),
           ),
@@ -302,6 +321,7 @@ class _ProceedOrderPageState extends State<ProceedOrderPage> {
     );
   }
 }
+
 class _OrderNoteCard extends StatelessWidget {
   const _OrderNoteCard({required this.controller});
 
@@ -482,11 +502,18 @@ class _CheckoutProgress extends StatelessWidget {
       ),
       child: Row(
         children: const [
-          _StepBubble(icon: Icons.shopping_cart_checkout_rounded, label: 'Cart', done: true),
+          _StepBubble(
+              icon: Icons.shopping_cart_checkout_rounded,
+              label: 'Cart',
+              done: true),
           Expanded(child: _StepLine()),
-          _StepBubble(icon: Icons.location_on_outlined, label: 'Checkout', done: true),
+          _StepBubble(
+              icon: Icons.location_on_outlined, label: 'Checkout', done: true),
           Expanded(child: _StepLine(active: false)),
-          _StepBubble(icon: Icons.check_circle_outline_rounded, label: 'Confirm', done: false),
+          _StepBubble(
+              icon: Icons.check_circle_outline_rounded,
+              label: 'Confirm',
+              done: false),
         ],
       ),
     );
@@ -494,7 +521,8 @@ class _CheckoutProgress extends StatelessWidget {
 }
 
 class _StepBubble extends StatelessWidget {
-  const _StepBubble({required this.icon, required this.label, required this.done});
+  const _StepBubble(
+      {required this.icon, required this.label, required this.done});
 
   final IconData icon;
   final String label;
@@ -586,7 +614,8 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _CheckoutCartItemCard extends StatelessWidget {
-  const _CheckoutCartItemCard({super.key, required this.item, required this.index});
+  const _CheckoutCartItemCard(
+      {super.key, required this.item, required this.index});
 
   final CartItem item;
   final int index;
@@ -691,17 +720,76 @@ class _QtyChip extends StatelessWidget {
   }
 }
 
-class _PaymentMethodCard extends StatelessWidget {
-  const _PaymentMethodCard({
+class _PaymentMethodGroup extends StatelessWidget {
+  const _PaymentMethodGroup({
+    required this.selectedPayment,
+    required this.onChanged,
+  });
+
+  final String selectedPayment;
+  final ValueChanged<String> onChanged;
+
+  static const Color _navy = _ProceedOrderPageState._navy;
+  static const Color _line = _ProceedOrderPageState._line;
+  static const Color _softBeige = _ProceedOrderPageState._softBeige;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.045),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _PaymentMethodOption(
+            icon: Icons.payments_outlined,
+            title: 'Cash on Delivery',
+            subtitle: 'Pay safely after receiving your order',
+            badge: 'Recommended',
+            selected: selectedPayment == 'cod',
+            onTap: () => onChanged('cod'),
+          ),
+          const Divider(height: 14),
+          _PaymentMethodOption(
+            icon: Icons.credit_card_rounded,
+            title: 'Online Payment',
+            subtitle: 'Pay now using card or mobile banking',
+            badge: 'Coming soon',
+            selected: selectedPayment == 'online',
+            onTap: () => onChanged('online'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentMethodOption extends StatelessWidget {
+  const _PaymentMethodOption({
+    required this.icon,
     required this.title,
     required this.subtitle,
-    required this.isSelected,
+    required this.badge,
+    required this.selected,
     required this.onTap,
   });
 
+  final IconData icon;
   final String title;
   final String subtitle;
-  final bool isSelected;
+  final String badge;
+  final bool selected;
   final VoidCallback onTap;
 
   static const Color _navy = _ProceedOrderPageState._navy;
@@ -710,70 +798,123 @@ class _PaymentMethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: isSelected ? _navy : _line, width: isSelected ? 1.4 : 1),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-              color: Colors.black.withOpacity(0.045),
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: selected ? _softBeige : const Color(0xFFF8F9FB),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+                color: selected ? _navy : _line, width: selected ? 1.3 : 1),
+          ),
+          child: Row(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: selected ? _navy : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: selected ? _navy : _line),
+                ),
+                child: Icon(icon,
+                    color: selected ? Colors.white : _navy, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _PaymentBadge(text: badge, selected: selected),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                        fontSize: 12,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: Icon(
+                  selected
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  key: ValueKey(selected),
+                  color:
+                      selected ? Colors.green.shade600 : Colors.grey.shade400,
+                  size: 25,
+                ),
+              ),
+            ],
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 46,
-              decoration: BoxDecoration(
-                color: _softBeige,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.local_shipping_outlined, color: _navy),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black54,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: Icon(
-                isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                key: ValueKey(isSelected),
-                color: isSelected ? Colors.green : Colors.grey.shade400,
-              ),
-            ),
-          ],
+      ),
+    );
+  }
+}
+
+class _PaymentBadge extends StatelessWidget {
+  const _PaymentBadge({required this.text, required this.selected});
+
+  final String text;
+  final bool selected;
+
+  static const Color _navy = _ProceedOrderPageState._navy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: selected ? _navy.withOpacity(0.1) : Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: selected
+              ? _navy.withOpacity(0.18)
+              : Colors.black.withOpacity(0.06),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: selected ? _navy : Colors.black45,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
@@ -844,7 +985,8 @@ class _CheckoutBottomBar extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.black45, size: 20),
+                    const Icon(Icons.keyboard_arrow_up_rounded,
+                        color: Colors.black45, size: 20),
                     const Spacer(),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 180),
@@ -870,12 +1012,14 @@ class _CheckoutBottomBar extends StatelessWidget {
                   elevation: 0,
                   backgroundColor: _navy,
                   disabledBackgroundColor: Colors.grey.shade300,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
                 onPressed: enabled ? onPlaceOrder : null,
                 child: const Text(
                   'PLACE MY ORDER',
-                  style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w900, color: Colors.white),
                 ),
               ),
             ),
@@ -907,7 +1051,8 @@ class _CouponRow extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 10),
-          const Icon(Icons.confirmation_number_outlined, size: 20, color: Colors.black45),
+          const Icon(Icons.confirmation_number_outlined,
+              size: 20, color: Colors.black45),
           Expanded(
             child: TextField(
               controller: controller,
@@ -927,12 +1072,14 @@ class _CouponRow extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
                   backgroundColor: _navy,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(11)),
                 ),
                 onPressed: onApply,
                 child: const Text(
                   'Apply',
-                  style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w900, color: Colors.white),
                 ),
               ),
             ),
@@ -944,7 +1091,8 @@ class _CouponRow extends StatelessWidget {
 }
 
 class _KeyValueRow extends StatelessWidget {
-  const _KeyValueRow({required this.label, required this.value, this.strong = false});
+  const _KeyValueRow(
+      {required this.label, required this.value, this.strong = false});
 
   final String label;
   final String value;
@@ -994,24 +1142,24 @@ class _ProductImage extends StatelessWidget {
         child: url.isEmpty
             ? const Icon(Icons.image_outlined, color: Colors.black38, size: 30)
             : Image.network(
-          url,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, progress) {
-            if (progress == null) return child;
-            return const Center(
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                url,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                },
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.broken_image_outlined,
+                  color: Colors.black38,
+                  size: 30,
+                ),
               ),
-            );
-          },
-          errorBuilder: (_, __, ___) => const Icon(
-            Icons.broken_image_outlined,
-            color: Colors.black38,
-            size: 30,
-          ),
-        ),
       ),
     );
   }
@@ -1061,7 +1209,8 @@ String _asImageUrl(String? fileName) {
 
 String _heroTag(CartItem item, int index) {
   final product = item.product;
-  final raw = product?.primaryImage?.fileName ?? product?.name ?? index.toString();
+  final raw =
+      product?.primaryImage?.fileName ?? product?.name ?? index.toString();
   return 'cart_product_image_$raw';
 }
 

@@ -4,10 +4,6 @@ part of 'app_pages.dart';
 abstract class Routes {
   Routes._();
 
-
-
-
-
   static const ROOT = _Paths.ROOT;
   static const SPLASHSCREEN = _Paths.SPLASHSCREEN;
 
@@ -26,6 +22,7 @@ abstract class Routes {
   static const CART_VIEW = _Paths.CART_VIEW;
   static const PROCEED_ORDER = _Paths.PROCEED_ORDER;
   static const CHECKOUT_SUCCESS = _Paths.CHECKOUT_SUCCESS;
+  static const WEBVIEW = _Paths.WEBVIEW;
   static const CATEGORY_VIEW = _Paths.CATEGORY_VIEW;
   static const ORDER_HISTORY = _Paths.ORDER_HISTORY;
   static const PRODUCT_FILTER = _Paths.PRODUCT_FILTER;
@@ -36,13 +33,9 @@ abstract class Routes {
   static const SHOP_PRODUCT = _Paths.SHOP_PRODUCT;
   static const TODAY_DEAL_PRODUCT = _Paths.TODAY_DEAL_PRODUCT;
   static const ADD_ADDRESS = _Paths.ADD_ADDRESS;
-
-
 }
 
 abstract class _Paths {
-
-
   static const HOME = '/home';
 
   static const ROOT = '/root';
@@ -65,6 +58,7 @@ abstract class _Paths {
   static const CART_VIEW = '/CART_VIEW';
   static const PROCEED_ORDER = '/PROCEED_ORDER';
   static const CHECKOUT_SUCCESS = '/CHECKOUT_SUCCESS';
+  static const WEBVIEW = '/WEBVIEW';
   static const CATEGORY_VIEW = '/CATEGORY_VIEW';
   static const ORDER_HISTORY = '/ORDER_HISTORY';
   static const PRODUCT_FILTER = '/PRODUCT_FILTER';
@@ -74,6 +68,4 @@ abstract class _Paths {
   static const SHOP_PRODUCT = '/SHOP_PRODUCT';
   static const TODAY_DEAL_PRODUCT = '/TODAY_DEAL_PRODUCT';
   static const ADD_ADDRESS = '/ADD_ADDRESS';
-
-
 }
