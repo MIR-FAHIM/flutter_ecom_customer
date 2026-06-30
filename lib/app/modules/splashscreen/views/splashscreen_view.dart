@@ -24,7 +24,7 @@ class SplashscreenView extends GetView<SplashscreenController> {
                 height: 200,
                 width: 200,
                 image: AssetImage(
-                  CompanyData.companyLogo,
+                  'assets/logo/mz_full_logo.png',
                 ),
               ),
             ),

@@ -16,7 +16,7 @@ class WebviewView extends GetView<WebviewController> {
         top: false,
         child: Scaffold(
           appBar: AppBar(
-            title: Text("Add Balance", style:TextStyle(color:Colors.black)),
+            title: Text("Payment", style:TextStyle(color:Colors.black)),
           ),
           body: Stack(
             children: [

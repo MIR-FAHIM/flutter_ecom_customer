@@ -18,6 +18,7 @@ import 'package:ecom_user_flutter/app/modules/products/view/widgets/home_fasion_
 import 'package:ecom_user_flutter/app/modules/products/view/widgets/home_restaurant_products.dart';
 import 'package:ecom_user_flutter/app/modules/products/view/widgets/medicine_home.dart';
 import 'package:ecom_user_flutter/app/routes/app_pages.dart';
+import 'package:ecom_user_flutter/app/services/auth_service.dart';
 import 'package:ecom_user_flutter/common/Color.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -305,16 +306,33 @@ class _PdfStyleHomeHeader extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      "Mr XYZ",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.textWhite,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
+                    if (Get.find<AuthService>().currentUser.value.data == null)
+                      Text(
+                        "Customer",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textWhite,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                    ),
+                    if (Get.find<AuthService>().currentUser.value.data != null)
+                      Text(
+                        Get.find<AuthService>()
+                            .currentUser
+                            .value
+                            .data!
+                            .user!
+                            .name!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textWhite,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                   ],
                 ),
               ),
