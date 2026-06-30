@@ -71,6 +71,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       final description = _productDescription(product);
       final productId = _productId(product);
       final maxStock = _productStock(product);
+      final isOutOfStock = maxStock <= 0;
       final unitPriceValue = _productUnitPriceValue(product);
 
       return Scaffold(
@@ -80,6 +81,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           productId: productId,
           maxStock: maxStock,
           unitPriceValue: unitPriceValue,
+          isOutOfStock: isOutOfStock,
         ),
         body: SafeArea(
           child: ListView(
@@ -90,6 +92,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 title: title,
                 currentIndex: _currentImageIndex,
                 pageController: _imagePageController,
+                isOutOfStock: isOutOfStock,
                 onPageChanged: (index) {
                   setState(() {
                     _currentImageIndex = index;
@@ -106,12 +109,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     _RatingSoldRow(product: product),
                     const SizedBox(height: 8),
                     _PriceRow(product: product),
+                    if (isOutOfStock) ...[
+                      const SizedBox(height: 10),
+                      const _StockOutNotice(),
+                    ],
                     const SizedBox(height: 10),
                     _SellerCard(product: product),
                     const SizedBox(height: 12),
                     _QuantityRow(
                       controller: controller,
                       maxStock: maxStock,
+                      isOutOfStock: isOutOfStock,
                     ),
                     const SizedBox(height: 10),
                     _TotalPriceBlock(
@@ -277,10 +285,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       () => product['qty'],
     ]);
 
-    final parsed =
-        int.tryParse(_clean(value).replaceAll(RegExp(r'[^0-9]'), ''));
+    final raw = _clean(value);
+    if (raw.isEmpty) return 100;
 
-    if (parsed == null || parsed <= 0) return 100;
+    final parsed = double.tryParse(
+      raw.replaceAll(RegExp(r'[^0-9.-]'), ''),
+    )?.floor();
+
+    if (parsed == null) return 100;
+    if (parsed < 0) return 0;
 
     return parsed;
   }
@@ -458,6 +471,7 @@ class _ProductImageHeader extends StatelessWidget {
     required this.title,
     required this.currentIndex,
     required this.pageController,
+    required this.isOutOfStock,
     required this.onPageChanged,
   });
 
@@ -465,6 +479,7 @@ class _ProductImageHeader extends StatelessWidget {
   final String title;
   final int currentIndex;
   final PageController pageController;
+  final bool isOutOfStock;
   final ValueChanged<int> onPageChanged;
 
   static const Color _primary = Color(0xFF00509D);
@@ -565,6 +580,36 @@ class _ProductImageHeader extends StatelessWidget {
               currentIndex: currentIndex,
             ),
           ),
+          if (isOutOfStock)
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 54,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE11D48),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'Stock Out',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1027,14 +1072,53 @@ class _SellerCard extends StatelessWidget {
   }
 }
 
+class _StockOutNotice extends StatelessWidget {
+  const _StockOutNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFEEF2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE11D48).withOpacity(0.22)),
+      ),
+      child: const Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            color: Color(0xFFE11D48),
+            size: 18,
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'This product is currently stock out.',
+              style: TextStyle(
+                color: Color(0xFFE11D48),
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _QuantityRow extends StatelessWidget {
   const _QuantityRow({
     required this.controller,
     required this.maxStock,
+    required this.isOutOfStock,
   });
 
   final ProductController controller;
   final int maxStock;
+  final bool isOutOfStock;
 
   @override
   Widget build(BuildContext context) {
@@ -1052,13 +1136,15 @@ class _QuantityRow extends StatelessWidget {
           const SizedBox(width: 20),
           _QtyButton(
             icon: Icons.remove_rounded,
-            onTap: controller.decreaseQty,
+            onTap: isOutOfStock ? null : controller.decreaseQty,
           ),
           const SizedBox(width: 14),
           Text(
-            controller.quantity.value.toString(),
-            style: const TextStyle(
-              color: Color(0xFF00509D),
+            isOutOfStock ? '0' : controller.quantity.value.toString(),
+            style: TextStyle(
+              color: isOutOfStock
+                  ? const Color(0xFF9CA3AF)
+                  : const Color(0xFF00509D),
               fontWeight: FontWeight.w900,
               fontSize: 17,
             ),
@@ -1066,15 +1152,19 @@ class _QuantityRow extends StatelessWidget {
           const SizedBox(width: 14),
           _QtyButton(
             icon: Icons.add_rounded,
-            onTap: () {
-              controller.increaseQty(maxStock: maxStock);
-            },
+            onTap: isOutOfStock
+                ? null
+                : () {
+                    controller.increaseQty(maxStock: maxStock);
+                  },
           ),
           const SizedBox(width: 14),
           Text(
-            "($maxStock)",
-            style: const TextStyle(
-              color: Color(0xFF7B8DA3),
+            isOutOfStock ? '(Stock Out)' : "($maxStock)",
+            style: TextStyle(
+              color: isOutOfStock
+                  ? const Color(0xFFE11D48)
+                  : const Color(0xFF7B8DA3),
               fontWeight: FontWeight.w800,
               fontSize: 13,
             ),
@@ -1092,10 +1182,12 @@ class _QtyButton extends StatelessWidget {
   });
 
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null;
+
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
@@ -1104,7 +1196,7 @@ class _QtyButton extends StatelessWidget {
         width: 26,
         child: Icon(
           icon,
-          color: const Color(0xFF00509D),
+          color: enabled ? const Color(0xFF00509D) : const Color(0xFF9CA3AF),
           size: 20,
         ),
       ),
@@ -1633,12 +1725,14 @@ class _BottomActionBar extends StatelessWidget {
     required this.productId,
     required this.maxStock,
     required this.unitPriceValue,
+    required this.isOutOfStock,
   });
 
   final ProductController controller;
   final String productId;
   final int maxStock;
   final double unitPriceValue;
+  final bool isOutOfStock;
 
   @override
   Widget build(BuildContext context) {
@@ -1727,7 +1821,7 @@ class _BottomActionBar extends StatelessWidget {
             Expanded(
               child: Obx(() {
                 return ElevatedButton(
-                  onPressed: controller.isCartLoading.value
+                  onPressed: controller.isCartLoading.value || isOutOfStock
                       ? null
                       : () {
                           if (productId.isEmpty) {
@@ -1745,8 +1839,12 @@ class _BottomActionBar extends StatelessWidget {
                           );
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00509D),
+                    backgroundColor: isOutOfStock
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF00509D),
+                    disabledBackgroundColor: const Color(0xFFCBD5E1),
                     foregroundColor: Colors.white,
+                    disabledForegroundColor: const Color(0xFF64748B),
                     elevation: 0,
                     minimumSize: const Size(double.infinity, 48),
                     shape: RoundedRectangleBorder(
@@ -1762,9 +1860,9 @@ class _BottomActionBar extends StatelessWidget {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          "Add To Cart",
-                          style: TextStyle(
+                      : Text(
+                          isOutOfStock ? "Stock Out" : "Add To Cart",
+                          style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 15,
                           ),
