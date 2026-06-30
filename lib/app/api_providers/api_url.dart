@@ -32,10 +32,14 @@ class ApiClient {
   // ==============================
   static const String createCategory = '$baseUrl/api/categories/create';
   static const String getCategory = '$baseUrl/api/categories/list';
-  static const String categoryDetails = '$baseUrl/api/categories/details/'; // {id}
-  static const String categoryChildren = '$baseUrl/api/categories/children/'; // {id}
-  static const String updateCategory = '$baseUrl/api/categories/update/'; // {id}
-  static const String deleteCategory = '$baseUrl/api/categories/delete/'; // {id}
+  static const String categoryDetails =
+      '$baseUrl/api/categories/details/'; // {id}
+  static const String categoryChildren =
+      '$baseUrl/api/categories/children/'; // {id}
+  static const String updateCategory =
+      '$baseUrl/api/categories/update/'; // {id}
+  static const String deleteCategory =
+      '$baseUrl/api/categories/delete/'; // {id}
 
   // ==============================
   // BRANDS
@@ -51,8 +55,7 @@ class ApiClient {
   // ==============================
   static const String createProduct = '$baseUrl/api/products/create';
   static const String listProducts = '$baseUrl/api/products/list';
-  static const String featuredProduct =
-      '$baseUrl/api/products/list/featured';
+  static const String featuredProduct = '$baseUrl/api/products/list/featured';
   static const String todayDealProducts =
       '$baseUrl/api/products/list/today-deal';
   static const String productDetails = '$baseUrl/api/products/details/'; // {id}
@@ -86,7 +89,6 @@ class ApiClient {
   static const String updateCartItem =
       '$baseUrl/api/carts/items/update/'; // {itemId}
   static const String deleteCartItem =
-
       '$baseUrl/api/carts/items/delete/'; // {itemId}
   static const String clearCart = '$baseUrl/api/carts/clear/'; // {userId}
 
@@ -94,6 +96,8 @@ class ApiClient {
   // ORDERS
   // ==============================
   static const String checkout = '$baseUrl/api/orders/checkout';
+  static const String initiateAamarPayPayment =
+      '$baseUrl/api/payments/aamarpay/initiate';
   static const String userOrders = '$baseUrl/api/orders/list/'; // {userId}
   static const String allOrders = '$baseUrl/api/orders/all/orders';
   static const String completedOrders = '$baseUrl/api/orders/completed';
@@ -101,8 +105,7 @@ class ApiClient {
       '$baseUrl/api/orders/completed/'; // {userId}
 
   static const String orderDetail = '$baseUrl/api/orders/details/'; // {id}
-  static const String changeOrderStatus =
-      '$baseUrl/api/orders/status/'; // {id}
+  static const String changeOrderStatus = '$baseUrl/api/orders/status/'; // {id}
   static const String changeOrderItemStatus =
       '$baseUrl/api/orders/item/status/'; // {id}
 
@@ -112,26 +115,22 @@ class ApiClient {
   static const String addAddress = '$baseUrl/api/addresses/add';
   static const String userAddresses =
       '$baseUrl/api/addresses/user/'; // {userId}
-  static const String deleteAddress =
-      '$baseUrl/api/addresses/delete/'; // {id}
+  static const String deleteAddress = '$baseUrl/api/addresses/delete/'; // {id}
   static const String inactiveAddress =
       '$baseUrl/api/addresses/inactive/'; // {id}
-  static const String updateAddress =
-      '$baseUrl/api/addresses/update/'; // {id}
+  static const String updateAddress = '$baseUrl/api/addresses/update/'; // {id}
 
   // ==============================
   // WISHLIST
   // ==============================
   static const String addWishlist = '$baseUrl/api/wishlists/add';
   static const String wishlist = '$baseUrl/api/wishlists/list/'; // {userId}
-  static const String deleteWishlist =
-      '$baseUrl/api/wishlists/delete/'; // {id}
+  static const String deleteWishlist = '$baseUrl/api/wishlists/delete/'; // {id}
 
   // ==============================
   // RELATED PRODUCTS
   // ==============================
-  static const String addRelatedProduct =
-      '$baseUrl/api/related-products/add';
+  static const String addRelatedProduct = '$baseUrl/api/related-products/add';
   static const String relatedProducts =
       '$baseUrl/api/related-products/list/'; // {productId}
   static const String removeRelatedProduct =
@@ -144,12 +143,10 @@ class ApiClient {
   static const String allReviews = '$baseUrl/api/reviews/list';
   static const String productReviews =
       '$baseUrl/api/reviews/product/'; // {productId}
-  static const String userReviews =
-      '$baseUrl/api/reviews/user/'; // {userId}
+  static const String userReviews = '$baseUrl/api/reviews/user/'; // {userId}
   static const String updateReviewByUser =
       '$baseUrl/api/reviews/update-by-user/'; // {id}
-  static const String deleteReview =
-      '$baseUrl/api/reviews/remove/'; // {id}
+  static const String deleteReview = '$baseUrl/api/reviews/remove/'; // {id}
 
   // ==============================
   // BANNERS
@@ -161,10 +158,8 @@ class ApiClient {
   // ==============================
   // ATTRIBUTES
   // ==============================
-  static const String createAttribute =
-      '$baseUrl/api/attributes/create';
-  static const String listAttributes =
-      '$baseUrl/api/attributes/list';
+  static const String createAttribute = '$baseUrl/api/attributes/create';
+  static const String listAttributes = '$baseUrl/api/attributes/list';
   static const String attributeDetails =
       '$baseUrl/api/attributes/details/'; // {id}
   static const String updateAttribute =
@@ -196,8 +191,7 @@ class ApiClient {
   // ==============================
   // REPORTS
   // ==============================
-  static const String dashboardReport =
-      '$baseUrl/api/reports/dashboard';
+  static const String dashboardReport = '$baseUrl/api/reports/dashboard';
 
   // ==============================
   // UPLOADS
@@ -210,10 +204,8 @@ class ApiClient {
   // ==============================
   // DELIVERY
   // ==============================
-  static const String assignDelivery =
-      '$baseUrl/api/deliveries/assign';
-  static const String unassignDelivery =
-      '$baseUrl/api/deliveries/unassign';
+  static const String assignDelivery = '$baseUrl/api/deliveries/assign';
+  static const String unassignDelivery = '$baseUrl/api/deliveries/unassign';
   static const String allDelivery =
       '$baseUrl/api/deliveries/all/'; // {deliveryManId}
   static const String deliveredDelivery =
@@ -228,10 +220,7 @@ class ApiClient {
   // ==============================
   // TRANSACTIONS
   // ==============================
-  static const String creditTransaction =
-      '$baseUrl/api/transactions/credit';
-  static const String debitTransaction =
-      '$baseUrl/api/transactions/debit';
-  static const String transactionReport =
-      '$baseUrl/api/transactions/report';
+  static const String creditTransaction = '$baseUrl/api/transactions/credit';
+  static const String debitTransaction = '$baseUrl/api/transactions/debit';
+  static const String transactionReport = '$baseUrl/api/transactions/report';
 }

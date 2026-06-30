@@ -40,7 +40,7 @@ class CartController extends GetxController {
   final areaController = TextEditingController().obs;
   final districtController = TextEditingController().obs;
   final isAddressAdding = false.obs;
-  final  noteCtrl = TextEditingController().obs;
+  final noteCtrl = TextEditingController().obs;
   final userAddress = <AddressModel>[].obs;
   final cart = Rxn<CartModel>();
 
@@ -50,15 +50,14 @@ class CartController extends GetxController {
   void onInit() {
     super.onInit();
 
-    if(Get.find<AuthService>().currentUser.value.data != null){
+    if (Get.find<AuthService>().currentUser.value.data != null) {
       getCart();
       getUserAddress();
     }
-
   }
+
   @override
   void onClose() {
-
     mobileController.value.dispose();
     districtController.value.dispose();
     areaController.value.dispose();
@@ -66,6 +65,7 @@ class CartController extends GetxController {
     noteCtrl.value.dispose();
     super.onClose();
   }
+
   // Initial load (active cart)
   Future<void> getCart() async {
     await getActiveCart(reset: true);
@@ -163,6 +163,7 @@ class CartController extends GetxController {
       isLoading.value = false;
     }
   }
+
   dynamic get selectedAddress {
     final addresses = userAddress.value;
 
@@ -183,6 +184,7 @@ class CartController extends GetxController {
 
     selectedAddressIndex.value = index;
   }
+
   Future<void> getUserAddress() async {
     print('i am here3423');
 
@@ -212,26 +214,20 @@ class CartController extends GetxController {
       isLoading.value = false;
     }
   }
- Future<void> deleteUserAddress(id) async {
 
+  Future<void> deleteUserAddress(id) async {
+    final res = await OrderRepository().deleteUserAddress(id);
+    // Debug
+    // print('Category API res = $res');
 
+    if (res is Map && res['status'] == 'success') {
+      print('i am 65456 success 34');
 
-      final res = await OrderRepository().deleteUserAddress(id);
-      // Debug
-      // print('Category API res = $res');
-
-      if (res is Map && res['status'] == 'success') {
-
-        print('i am 65456 success 34');
-
-        getUserAddress();
-      } else {
-        error.value =
-            (res is Map ? (res['message']?.toString() ?? 'Failed') : 'Failed');
-      }
-
-
-
+      getUserAddress();
+    } else {
+      error.value =
+          (res is Map ? (res['message']?.toString() ?? 'Failed') : 'Failed');
+    }
   }
 
   void clearAddressForm() {
@@ -264,6 +260,7 @@ class CartController extends GetxController {
 
     return true;
   }
+
   Future<void> addAddressController() async {
     if (!validateAddressForm()) return;
     if (isAddressAdding.value) return;
@@ -304,11 +301,10 @@ class CartController extends GetxController {
 
         // Call your address refresh API here.
         // Example:
-         await getUserAddress();
+        await getUserAddress();
       } else {
-        error.value = res is Map
-            ? (res['message']?.toString() ?? 'Failed')
-            : 'Failed';
+        error.value =
+            res is Map ? (res['message']?.toString() ?? 'Failed') : 'Failed';
 
         Get.snackbar(
           'Error',
@@ -455,43 +451,145 @@ class CartController extends GetxController {
       customerName:
           Get.find<AuthService>().currentUser.value.data!.user!.name.toString(),
       customerPhone: selectedAddress.mobile.toString(),
-      shippingAddress:  selectedAddress.address?.toString() ?? 'No address details',
+      shippingAddress:
+          selectedAddress.address?.toString() ?? 'No address details',
       zone: 'zone',
-      note: noteCtrl.value.text.isEmpty ? 'No Note' : noteCtrl.value.text ,
+      note: noteCtrl.value.text.isEmpty ? 'No Note' : noteCtrl.value.text,
       isOutsideDhaka: isOutsideDhaka.value.toString(),
     );
 
     isLoading.value = true;
     error.value = '';
 
+    final res = await _repo.checkout(payload); // implement in repo
 
-      final res = await _repo.checkout(payload); // implement in repo
+    if (res is Map && res['status'] == 'success') {
+      // After successful checkout, refresh cart
+      await getActiveCart(reset: true);
 
-      if (res is Map && res['status'] == 'success') {
-        // After successful checkout, refresh cart
-       await getActiveCart(reset: true);
+      print("i am here 4554 $res");
+      final checkoutResponse = CheckoutSuccessResponse.fromJson(
+        Map<String, dynamic>.from(res),
+      );
 
-        print("i am here 4554 $res");
-       final checkoutResponse = CheckoutSuccessResponse.fromJson(
-         Map<String, dynamic>.from(res),
-       );
+      Get.offNamed(
+        Routes.CHECKOUT_SUCCESS,
+        arguments: checkoutResponse,
+      );
+      // Navigate if you want:
+      Get.offNamed(Routes.CHECKOUT_SUCCESS, arguments: {
+        'order_id': res['data'][0]['order_number'],
+        'amount': res['data'][0]['total'].toString(),
+      });
+    } else {
+      print("i am here 4554 ");
+      error.value =
+          (res is Map ? (res['message']?.toString() ?? 'Failed') : 'Failed');
+      Get.snackbar('Order', error.value);
+    }
+  }
 
-       Get.offNamed(
-         Routes.CHECKOUT_SUCCESS,
-         arguments: checkoutResponse,
-       );
-        // Navigate if you want:
-        Get.offNamed(Routes.CHECKOUT_SUCCESS, arguments: {
-          'order_id': res['data'][0]['order_number'],
-          'amount': res['data'][0]['total'].toString(),
-        });
+  Future<void>
+  initiateAamarPayPayment({
+    required num amount,
+    required int isOutsideDhakaValue,
+  }) async {
+    if (isLoading.value) return;
+
+    final c = cart.value;
+    if (c == null || (c.items ?? <CartItem>[]).isEmpty) {
+      Get.snackbar('Cart', 'Your cart is empty');
+      return;
+    }
+
+    final payload = buildCheckoutPayload(
+      userId:
+          Get.find<AuthService>().currentUser.value.data!.user!.id.toString(),
+      customerName:
+          Get.find<AuthService>().currentUser.value.data!.user!.name.toString(),
+      customerPhone: selectedAddress.mobile.toString(),
+      shippingAddress:
+          selectedAddress.address?.toString() ?? 'No address details',
+      zone: 'zone',
+      note: noteCtrl.value.text.isEmpty ? 'No Note' : noteCtrl.value.text,
+      isOutsideDhaka: isOutsideDhakaValue.toString(),
+    );
+
+    payload.addAll(<String, String>{
+      'amount': amount.toString(),
+      'total_amount': amount.toString(),
+      'shipping_charge': shippingCharge.value.toString(),
+      'payment_method': 'aamarpay',
+    });
+
+    isLoading.value = true;
+    error.value = '';
+
+    try {
+      final res = await _repo.initiateAamarPayPayment(payload);
+
+      if (res is Map) {
+        final paymentUrl = _readPaymentUrl(res);
+
+        if (paymentUrl.isNotEmpty) {
+          Get.toNamed(
+            Routes.WEBVIEW,
+            arguments: {
+              'paymentURL': paymentUrl,
+              'title': 'Online Payment',
+            },
+          );
+          return;
+        }
+
+        error.value = res['message']?.toString() ??
+            'Payment URL was not found in the response';
+      } else {
+        error.value = 'Failed to initiate online payment';
       }
-      else {
-        print("i am here 4554 ");
-        error.value =
-            (res is Map ? (res['message']?.toString() ?? 'Failed') : 'Failed');
-        Get.snackbar('Order', error.value);
+
+      Get.snackbar('Online Payment', error.value);
+    } catch (e) {
+      error.value = e.toString();
+      Get.snackbar('Online Payment', error.value);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  String _readPaymentUrl(dynamic value) {
+    const keys = {
+      'payment_url',
+      'paymentURL',
+      'paymentUrl',
+      'redirect_url',
+      'redirectURL',
+      'gateway_url',
+      'gatewayURL',
+      'url',
+    };
+
+    if (value is Map) {
+      for (final key in keys) {
+        final item = value[key];
+        if (item is String && item.trim().startsWith('http')) {
+          return item.trim();
+        }
       }
 
+      for (final item in value.values) {
+        final url = _readPaymentUrl(item);
+        if (url.isNotEmpty) return url;
+      }
+    }
+
+    if (value is List) {
+      for (final item in value) {
+        final url = _readPaymentUrl(item);
+        if (url.isNotEmpty) return url;
+      }
+    }
+
+    return '';
   }
 }

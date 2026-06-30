@@ -8,9 +8,9 @@ class OrderRepository {
   final userdata = GetStorage();
 
   Map<String, String> get header => {
-    'Authorization':
-    'Bearer ${Get.find<AuthService>().currentUser.value.data!.token}',
-  };
+        'Authorization':
+            'Bearer ${Get.find<AuthService>().currentUser.value.data!.token}',
+      };
 
   /// User login api call
   userLogin(String phoneNumber, String pass, String fcm) async {
@@ -113,6 +113,19 @@ class OrderRepository {
     );
 
     print('checkout 45346: $response');
+
+    return response;
+  }
+
+  initiateAamarPayPayment(data) async {
+    APIManager _manager = APIManager();
+    final response = await _manager.postAPICallWithHeader(
+      ApiClient.initiateAamarPayPayment,
+      data,
+      header,
+    );
+
+    print('initiateAamarPayPayment 45347: $response');
 
     return response;
   }

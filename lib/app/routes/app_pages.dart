@@ -1,4 +1,3 @@
-
 import 'package:ecom_user_flutter/app/modules/auth/login/bindings/login_binding.dart';
 import 'package:ecom_user_flutter/app/modules/auth/login/views/login_view.dart';
 import 'package:ecom_user_flutter/app/modules/auth/login/views/register_view.dart';
@@ -27,9 +26,10 @@ import 'package:ecom_user_flutter/app/modules/products/view/today_deal_products.
 import 'package:ecom_user_flutter/app/modules/shop/binding/shop_binding.dart';
 import 'package:ecom_user_flutter/app/modules/shop/view/brand_list_view.dart';
 import 'package:ecom_user_flutter/app/modules/shop/view/shop_list.dart';
+import 'package:ecom_user_flutter/app/modules/webview/bindings/webview_binding.dart';
+import 'package:ecom_user_flutter/app/modules/webview/views/webview_view.dart';
 import 'package:ecom_user_flutter/app/modules/wishlist/binding/wishlist_binding.dart';
 import 'package:ecom_user_flutter/app/modules/wishlist/view/wish_list_view.dart';
-
 
 import 'package:get/get.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -53,30 +53,26 @@ class AppPages {
       page: () => HomeView(),
       binding: HomeBinding(),
     ),
-
-
     GetPage(
       name: _Paths.ROOT,
       page: () => RootView(),
       binding: RootBinding(),
     ),
- GetPage(
+    GetPage(
       name: _Paths.BRAND_LIST,
       page: () => BrandListView(),
       binding: ShopBinding(),
     ),
-
     GetPage(
       name: _Paths.LOGIN,
       page: () => LoginView(),
       binding: LoginBinding(),
     ),
-     GetPage(
+    GetPage(
       name: _Paths.FORGET_PASSWORD,
       page: () => LoginView(),
       binding: LoginBinding(),
     ),
-
     GetPage(
       name: _Paths.SIGNUP,
       page: () => RegisterView(),
@@ -87,123 +83,112 @@ class AppPages {
       page: () => SplashscreenView(),
       binding: SplashscreenBinding(),
     ),
-
-GetPage(
+    GetPage(
       name: _Paths.ALL_DELIVERY_ORDER,
       page: () => AssignedAllDeliveryView(),
       binding: DeliveryBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.Completed_DELIVERY_ORDER,
       page: () => CompletedDeliveryView(),
       binding: DeliveryBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.Pending_DELIVERY_ORDER,
-      page: () => PendingDeliveryView(status: 'assigned',),
+      page: () => PendingDeliveryView(
+        status: 'assigned',
+      ),
       binding: DeliveryBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.ORDER_DETAIL,
       page: () => OrderDetailsView(),
       binding: OrderBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.DELIVERED_ORDER,
       page: () => Deliveredorder(),
       binding: DeliveryBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.MY_DELIVERY,
       page: () => MyDeliveryTabView(),
       binding: DeliveryBinding(),
     ),
-
-GetPage(
+    GetPage(
       name: _Paths.PRODUCT_DETAIL,
       page: () => ProductDetailPage(),
       binding: ProductBinding(),
     ),
-
     GetPage(
       name: _Paths.SHOP_PRODUCT,
       page: () => ShopProducts(),
       binding: ProductBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.TODAY_DEAL_PRODUCT,
       page: () => TodayDealProducts(),
       binding: ProductBinding(),
     ),
-
-GetPage(
+    GetPage(
       name: _Paths.CART_VIEW,
       page: () => CartView(),
       binding: CartBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.ADD_ADDRESS,
       page: () => UserAddress(),
       binding: CartBinding(),
     ),
-
-GetPage(
+    GetPage(
       name: _Paths.PROCEED_ORDER,
       page: () => ProceedOrderPage(),
       binding: CartBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.CHECKOUT_SUCCESS,
       page: () => CheckoutSuccessView(),
       binding: CartBinding(),
     ),
-GetPage(
+    GetPage(
+      name: _Paths.WEBVIEW,
+      page: () => WebviewView(),
+      binding: WebviewBinding(),
+    ),
+    GetPage(
       name: _Paths.CATEGORY_VIEW,
       page: () => AllCategoryView(),
       binding: CategoryBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.ORDER_HISTORY,
       page: () => OrderHistoryPage(),
       binding: OrderBinding(),
     ),
-
-
-GetPage(
+    GetPage(
       name: _Paths.PRODUCT_FILTER,
       page: () => ProductFilterPage(),
       binding: ProductBinding(),
     ),
-
-GetPage(
+    GetPage(
       name: _Paths.CATEGORY_WISE_PRODUCT,
       page: () => CategoryWisedProducts(),
       binding: ProductBinding(),
     ),
-GetPage(
+    GetPage(
       name: _Paths.SHOP_LIST,
       page: () => ShopListView(),
       binding: ShopBinding(),
     ),
-
-GetPage(
+    GetPage(
       name: _Paths.BRAND_LIST,
       page: () => BrandListView(),
       binding: ShopBinding(),
     ),
-
-GetPage(
+    GetPage(
       name: _Paths.WISH_LIST,
       page: () => WishListView(),
       binding: WishlistBinding(),
     ),
-
-
-
-
-
-
-
-
   ];
 }
