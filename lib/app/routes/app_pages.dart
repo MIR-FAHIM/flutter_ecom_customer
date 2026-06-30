@@ -14,9 +14,10 @@ import 'package:ecom_user_flutter/app/modules/delivery/view/assigned_delivery_vi
 import 'package:ecom_user_flutter/app/modules/delivery/view/completed_delivery_view.dart';
 import 'package:ecom_user_flutter/app/modules/delivery/view/deliveredOrder.dart';
 import 'package:ecom_user_flutter/app/modules/delivery/view/my_delivery_tab.dart';
-import 'package:ecom_user_flutter/app/modules/delivery/view/order_detail_view.dart';
+
 import 'package:ecom_user_flutter/app/modules/delivery/view/pending_delivery_view.dart';
 import 'package:ecom_user_flutter/app/modules/order/binding/order_binding.dart';
+import 'package:ecom_user_flutter/app/modules/order/view/order_details.dart';
 import 'package:ecom_user_flutter/app/modules/products/binding/product_binding.dart';
 import 'package:ecom_user_flutter/app/modules/products/view/category_wised_products.dart';
 import 'package:ecom_user_flutter/app/modules/products/view/product_detail.dart';
@@ -104,8 +105,8 @@ GetPage(
     ),
 GetPage(
       name: _Paths.ORDER_DETAIL,
-      page: () => OrderDetailView(),
-      binding: DeliveryBinding(),
+      page: () => OrderDetailsView(),
+      binding: OrderBinding(),
     ),
 GetPage(
       name: _Paths.DELIVERED_ORDER,

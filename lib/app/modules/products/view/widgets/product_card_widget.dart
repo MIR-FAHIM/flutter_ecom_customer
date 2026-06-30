@@ -86,6 +86,7 @@ class ProductCard extends GetWidget<ProductController> {
     final name = product.name.trim();
     final unit = (product.unit ?? '').trim();
 
+
     final rating = product.rating;
     final sold = product.numOfSale;
 
@@ -207,6 +208,7 @@ class ProductCard extends GetWidget<ProductController> {
                               height: 1.05,
                             ),
                           ),
+
                         ],
 
                         const Spacer(),

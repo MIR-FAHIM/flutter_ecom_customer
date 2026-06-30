@@ -98,6 +98,51 @@ class ProfileView extends GetView<HomeController> {
                 ),
 
                 const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "New here?".tr,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    TextButton(
+                      onPressed: () => Get.toNamed(Routes.SIGNUP),
+                      child: Text(
+                        "Create Account".tr,
+                        style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.green),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(
+                  height: 44,
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF588D26),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Get.offAllNamed(Routes.SIGNUP);
+                    },
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            SizedBox(
+              height: 10,),
 
                 // Secondary action (Logout/clear session)
                 SizedBox(
@@ -205,6 +250,7 @@ class ProfileView extends GetView<HomeController> {
                                   ),
                                 ),
                                 const SizedBox(height: 3),
+                                controller.profileData.value.email == null ? Container():
                                 Text(
                                   controller.profileData.value.email!,
                                   maxLines: 1,

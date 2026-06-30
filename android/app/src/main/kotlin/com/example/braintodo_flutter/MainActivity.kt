@@ -1,4 +1,4 @@
-package com.myzoo.customerr
+package com.myzoo.customer
 
 import io.flutter.embedding.android.FlutterActivity
 
